@@ -65,3 +65,17 @@ func Op(lhs interface{}, op BinaryOp, rhs interface{}) *OpCond {
 		op:  op,
 	}
 }
+
+// IdentExpr is an identifier.
+type IdentExpr struct {
+	name string
+}
+
+// Ident creates a new IdentExpr.
+func Ident(name string) *IdentExpr {
+	return &IdentExpr{name: name}
+}
+
+func (ie *IdentExpr) ToASTExpr() ast.Expr {
+	return &ast.Ident{Name: ie.name}
+}

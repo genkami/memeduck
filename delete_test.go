@@ -26,4 +26,8 @@ func TestDeleteWithBinaryOp(t *testing.T) {
 		memeduck.Delete("hoge", memeduck.Op(1, memeduck.EQ, 2)),
 		`DELETE FROM hoge WHERE 1 = 2`,
 	)
+	testDelete(t,
+		memeduck.Delete("hoge", memeduck.Op(memeduck.Ident("a"), memeduck.NE, "foo")),
+		`DELETE FROM hoge WHERE a != "foo"`,
+	)
 }

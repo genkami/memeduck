@@ -24,17 +24,17 @@ func InsertInto(table string, cols []string) *InsertIntoBuilder {
 }
 
 // Values adds a VALUES clause to the insert statement.
-func (ib *InsertIntoBuilder) Values(values []interface{}) *InsertIntoValuesBuilder {
+func (ib *InsertIntoBuilder) Values(rows interface{}) *InsertIntoValuesBuilder {
 	return &InsertIntoValuesBuilder{
-		ib:     ib,
-		values: values,
+		ib:   ib,
+		rows: rows,
 	}
 }
 
 // InsertIntoValuesBuilder builds INSERT statements with VALUES clauses.
 type InsertIntoValuesBuilder struct {
-	ib     *InsertIntoBuilder
-	values []interface{}
+	ib   *InsertIntoBuilder
+	rows interface{}
 }
 
 func (ivb *InsertIntoValuesBuilder) SQL() (string, error) {
@@ -51,10 +51,13 @@ func (ivb *InsertIntoValuesBuilder) toStmt() (*ast.Insert, error) {
 		cols = append(cols, &ast.Ident{Name: name})
 	}
 	input := &ast.ValuesInput{}
-	for _, val := range ivb.values {
-		row, err := toValuesRow(val)
+	// TODO: check types
+	rowsV := reflect.ValueOf(ivb.rows)
+	for i := 0; i < rowsV.Len(); i++ {
+		rowI := rowsV.Index(i).Interface()
+		row, err := toValuesRow(rowI)
 		if err != nil {
-			return nil, errors.WithMessagef(err, "can't convert %T into SQL row", val)
+			return nil, errors.WithMessagef(err, "can't convert %T into SQL row", rowI)
 		}
 		input.Rows = append(input.Rows, row)
 	}

@@ -14,7 +14,7 @@ func TestInsert(t *testing.T) {
 	}
 
 	test(
-		InsertInto("person", []string{"age", "height"}).Values([]interface{}{
+		InsertInto("person", []string{"age", "height"}).Values([][]int{
 			[]int{1600, 143},
 		}),
 		"INSERT INTO person (age, height) VALUES (1600, 143)",

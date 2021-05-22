@@ -20,6 +20,11 @@ func testInsert(t *testing.T, stmt *memeduck.InsertStmt, expected string) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestInsertWithNoValuesClause(t *testing.T) {
+	_, err := memeduck.Insert("hoge", []string{"a", "b"}).SQL()
+	assert.Error(t, err, "no VALUES")
+}
+
 func TestInsertWithEmpty(t *testing.T) {
 	_, err := memeduck.Insert("hoge", []string{"a", "b"}).Values([][]int{}).SQL()
 	assert.Error(t, err, "empty values")

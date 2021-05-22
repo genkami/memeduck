@@ -86,6 +86,9 @@ func (s *InsertStmt) toAST() (*ast.Insert, error) {
 	for _, name := range s.cols {
 		cols = append(cols, &ast.Ident{Name: name})
 	}
+	if s.values == nil {
+		return nil, errors.New("neither VALUES nor SELECT specified")
+	}
 	input := &ast.ValuesInput{}
 	// TODO: support SELECT
 	rowsV := reflect.ValueOf(s.values)

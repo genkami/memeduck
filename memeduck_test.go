@@ -3,6 +3,7 @@ package memeduck_test
 import (
 	"math"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/spanner"
 	"github.com/stretchr/testify/assert"
@@ -254,4 +255,64 @@ func TestInsertWithNullFloat64Slice(t *testing.T) {
 			`-Inf, `+
 			`NULL)`,
 	)
+}
+
+func TestInsertWithTimeSlice(t *testing.T) {
+	var a = parseTime(t, "2020-06-06T12:34:56.123456Z")
+	var b = parseTime(t, "2021-08-10T00:01:23.456789+09:00")
+	var c = parseTime(t, "2022-12-08T14:22:51.837583-04:30")
+	var d = parseTime(t, "2023-10-10T08:43:17.536829+00:00")
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]time.Time{
+			{a, b, c, d},
+		}),
+		`INSERT INTO hoge (a, b, c, d) VALUES (`+
+			`TIMESTAMP "2020-06-06T12:34:56.123456Z", `+
+			`TIMESTAMP "2021-08-10T00:01:23.456789+09:00", `+
+			`TIMESTAMP "2022-12-08T14:22:51.837583-04:30", `+
+			`TIMESTAMP "2023-10-10T08:43:17.536829Z")`,
+	)
+}
+
+func TestInsertWithTimePtrSlice(t *testing.T) {
+	var a = parseTime(t, "2020-06-06T12:34:56.123456Z")
+	var b = parseTime(t, "2021-08-10T00:01:23.456789+09:00")
+	var c = parseTime(t, "2022-12-08T14:22:51.837583-04:30")
+	var d = parseTime(t, "2023-10-10T08:43:17.536829+00:00")
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]*time.Time{
+			{&a, &b, &c, &d, nil},
+		}),
+		`INSERT INTO hoge (a, b, c, d) VALUES (`+
+			`TIMESTAMP "2020-06-06T12:34:56.123456Z", `+
+			`TIMESTAMP "2021-08-10T00:01:23.456789+09:00", `+
+			`TIMESTAMP "2022-12-08T14:22:51.837583-04:30", `+
+			`TIMESTAMP "2023-10-10T08:43:17.536829Z", `+
+			`NULL)`,
+	)
+}
+
+func TestInsertWithNullTimeSlice(t *testing.T) {
+	var a = spanner.NullTime{Time: parseTime(t, "2020-06-06T12:34:56.123456Z"), Valid: true}
+	var b = spanner.NullTime{Time: parseTime(t, "2021-08-10T00:01:23.456789+09:00"), Valid: true}
+	var c = spanner.NullTime{Time: parseTime(t, "2022-12-08T14:22:51.837583-04:30"), Valid: true}
+	var d = spanner.NullTime{Time: parseTime(t, "2023-10-10T08:43:17.536829+00:00"), Valid: true}
+	var e = spanner.NullTime{}
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]spanner.NullTime{
+			{a, b, c, d, e},
+		}),
+		`INSERT INTO hoge (a, b, c, d) VALUES (`+
+			`TIMESTAMP "2020-06-06T12:34:56.123456Z", `+
+			`TIMESTAMP "2021-08-10T00:01:23.456789+09:00", `+
+			`TIMESTAMP "2022-12-08T14:22:51.837583-04:30", `+
+			`TIMESTAMP "2023-10-10T08:43:17.536829Z", `+
+			`NULL)`,
+	)
+}
+
+func parseTime(t *testing.T, s string) time.Time {
+	ts, err := time.Parse(time.RFC3339Nano, s)
+	assert.Nil(t, err, "failed to parse %s", s)
+	return ts
 }

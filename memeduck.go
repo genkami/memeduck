@@ -4,6 +4,7 @@ package memeduck
 import (
 	"reflect"
 	"strconv"
+	"time"
 
 	"cloud.google.com/go/spanner"
 	"github.com/MakeNowJust/memefish/pkg/ast"
@@ -63,7 +64,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 // [][]byte - BYTES ARRAY
 // []int, []int64, []*int64, []NullInt64 - INT64 ARRAY
 // []bool, []*bool, []NullBool - BOOL ARRAY
-// float64, *float64, NullFloat64 - FLOAT64
 // []float64, []*float64, []NullFloat64 - FLOAT64 ARRAY
 // time.Time, *time.Time, NullTime - TIMESTAMP
 // []time.Time, []*time.Time, []NullTime - TIMESTAMP ARRAY
@@ -147,6 +147,18 @@ func toExpr(val interface{}) (ast.Expr, error) {
 			return nullLit(), nil
 		}
 		return floatLit(v.Float64), nil
+	case time.Time:
+		return timeLit(v), nil
+	case *time.Time:
+		if v == nil {
+			return nullLit(), nil
+		}
+		return timeLit(*v), nil
+	case spanner.NullTime:
+		if !v.Valid {
+			return nullLit(), nil
+		}
+		return timeLit(v.Time), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}
@@ -180,6 +192,14 @@ func boolLit(v bool) *ast.BoolLiteral {
 func floatLit(v float64) *ast.FloatLiteral {
 	return &ast.FloatLiteral{
 		Value: strconv.FormatFloat(v, 'e', -1, 64),
+	}
+}
+
+func timeLit(t time.Time) *ast.TimestampLiteral {
+	return &ast.TimestampLiteral{
+		Value: &ast.StringLiteral{
+			Value: t.Format(time.RFC3339Nano),
+		},
 	}
 }
 

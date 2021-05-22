@@ -74,21 +74,31 @@ func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 func toExpr(val interface{}) (ast.Expr, error) {
 	switch v := val.(type) {
 	case int:
-		return toIntLit(int64(v)), nil
+		return intLit(int64(v)), nil
 	case *int:
-		return toIntLit(int64(*v)), nil
+		if v == nil {
+			return nullLit(), nil
+		}
+		return intLit(int64(*v)), nil
 	case int64:
-		return toIntLit(v), nil
+		return intLit(v), nil
 	case *int64:
-		return toIntLit(*v), nil
+		if v == nil {
+			return nullLit(), nil
+		}
+		return intLit(*v), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}
 }
 
-func toIntLit(v int64) *ast.IntLiteral {
+func intLit(v int64) *ast.IntLiteral {
 	return &ast.IntLiteral{
 		Base:  10,
 		Value: strconv.FormatInt(v, 10),
 	}
+}
+
+func nullLit() *ast.NullLiteral {
+	return &ast.NullLiteral{}
 }

@@ -30,6 +30,12 @@ func TestInsertWithIntPtrSlice(t *testing.T) {
 		}),
 		"INSERT INTO person (age, height) VALUES (1600, 143)",
 	)
+	testInsert(t,
+		Insert("person", []string{"age", "height"}, [][]*int{
+			{nil, nil},
+		}),
+		"INSERT INTO person (age, height) VALUES (NULL, NULL)",
+	)
 }
 
 func TestInsertWithInt64Slice(t *testing.T) {
@@ -48,5 +54,11 @@ func TsetInsertWithInt64PtrSlice(t *testing.T) {
 			{&age, &height},
 		}),
 		"INSERT INTO person (age, height) VALUES (1600, 143)",
+	)
+	testInsert(t,
+		Insert("person", []string{"age", "height"}, [][]*int64{
+			{nil, nil},
+		}),
+		"INSERT INTO person (age, height) VALUES (NULL, NULLtes)",
 	)
 }

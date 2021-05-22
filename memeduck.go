@@ -101,6 +101,11 @@ func toExpr(val interface{}) (ast.Expr, error) {
 			return stringLit(v.StringVal), nil
 		}
 		return nullLit(), nil
+	case []byte:
+		if v == nil {
+			return nullLit(), nil
+		}
+		return bytesLit(v), nil
 	case int:
 		return intLit(int64(v)), nil
 	case *int:
@@ -127,6 +132,12 @@ func toExpr(val interface{}) (ast.Expr, error) {
 
 func stringLit(v string) *ast.StringLiteral {
 	return &ast.StringLiteral{
+		Value: v,
+	}
+}
+
+func bytesLit(v []byte) *ast.BytesLiteral {
+	return &ast.BytesLiteral{
 		Value: v,
 	}
 }

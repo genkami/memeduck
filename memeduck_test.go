@@ -57,6 +57,21 @@ func TestInsertWithNullStringSlice(t *testing.T) {
 	)
 }
 
+func TestInsertWithByteSliceSlice(t *testing.T) {
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][][]byte{
+			{{0, 1}, {2, 3, 4}},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (B"\x00\x01", B"\x02\x03\x04")`,
+	)
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][][]byte{
+			{nil, nil},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}
+
 func TestInsertWithIntSlice(t *testing.T) {
 	testInsert(t,
 		Insert("hoge", []string{"a", "b"}, [][]int{

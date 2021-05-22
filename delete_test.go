@@ -16,18 +16,18 @@ func testDelete(t *testing.T, stmt *memeduck.DeleteStmt, expected string) {
 
 func TestDeleteWithBool(t *testing.T) {
 	testDelete(t,
-		memeduck.Delete("hoge", memeduck.Bool(true)),
+		memeduck.Delete("hoge").Where(memeduck.Bool(true)),
 		`DELETE FROM hoge WHERE TRUE`,
 	)
 }
 
 func TestDeleteWithBinaryOp(t *testing.T) {
 	testDelete(t,
-		memeduck.Delete("hoge", memeduck.Op(1, memeduck.EQ, 2)),
+		memeduck.Delete("hoge").Where(memeduck.Op(1, memeduck.EQ, 2)),
 		`DELETE FROM hoge WHERE 1 = 2`,
 	)
 	testDelete(t,
-		memeduck.Delete("hoge", memeduck.Op(memeduck.Ident("a"), memeduck.NE, "foo")),
+		memeduck.Delete("hoge").Where(memeduck.Op(memeduck.Ident("a"), memeduck.NE, "foo")),
 		`DELETE FROM hoge WHERE a != "foo"`,
 	)
 }

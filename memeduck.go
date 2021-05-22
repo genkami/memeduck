@@ -21,16 +21,23 @@ type DeleteStmt struct {
 	conds []WhereCond
 }
 
-// Delete creates a new DeleteStmt with given table name and where clause.
-func Delete(table string, conds ...WhereCond) *DeleteStmt {
+// Delete creates a new DeleteStmt with given table name.
+func Delete(table string) *DeleteStmt {
 	return &DeleteStmt{
 		table: table,
-		conds: conds,
 	}
 }
 
-func (ds *DeleteStmt) SQL() (string, error) {
-	stmt, err := ds.toAST()
+// Where appends given conditional expressions to the DELETE statement.
+func (s *DeleteStmt) Where(conds ...WhereCond) *DeleteStmt {
+	return &DeleteStmt{
+		table: s.table,
+		conds: append(s.conds, conds...),
+	}
+}
+
+func (s *DeleteStmt) SQL() (string, error) {
+	stmt, err := s.toAST()
 	if err != nil {
 		return "", err
 	}

@@ -44,13 +44,16 @@ func (s *DeleteStmt) SQL() (string, error) {
 	return stmt.SQL(), nil
 }
 
-func (ds *DeleteStmt) toAST() (*ast.Delete, error) {
-	cond, err := ds.conds[0].ToAstWhere()
+func (s *DeleteStmt) toAST() (*ast.Delete, error) {
+	if len(s.conds) == 0 {
+		return nil, errors.New("no WHERE clause specified")
+	}
+	cond, err := s.conds[0].ToAstWhere()
 	if err != nil {
 		return nil, err
 	}
 	return &ast.Delete{
-		TableName: &ast.Ident{Name: ds.table},
+		TableName: &ast.Ident{Name: s.table},
 		Where:     cond,
 	}, nil
 }

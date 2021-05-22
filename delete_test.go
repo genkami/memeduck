@@ -31,3 +31,8 @@ func TestDeleteWithBinaryOp(t *testing.T) {
 		`DELETE FROM hoge WHERE a != "foo"`,
 	)
 }
+
+func TestDeleteWithNoWhereClause(t *testing.T) {
+	_, err := memeduck.Delete("hoge").SQL()
+	assert.Error(t, err)
+}

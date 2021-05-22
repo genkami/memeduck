@@ -141,3 +141,47 @@ func TestInsertWithNullInt64Slice(t *testing.T) {
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
 	)
 }
+
+func TestInsertWithBoolSlice(t *testing.T) {
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]bool{
+			{true, false},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (TRUE, FALSE)`,
+	)
+}
+
+func TestInsertWithBoolPtrSlice(t *testing.T) {
+	var a = true
+	var b = false
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]*bool{
+			{&a, &b},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (TRUE, FALSE)`,
+	)
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]*bool{
+			{nil, nil},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}
+
+func TestInsertWithNullBoolSlice(t *testing.T) {
+	var a = spanner.NullBool{Bool: true, Valid: true}
+	var b = spanner.NullBool{Bool: false, Valid: true}
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]spanner.NullBool{
+			{a, b},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (TRUE, FALSE)`,
+	)
+	var null = spanner.NullBool{}
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]spanner.NullBool{
+			{null, null},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}

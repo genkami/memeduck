@@ -96,10 +96,10 @@ func toExpr(val interface{}) (ast.Expr, error) {
 		}
 		return stringLit(*v), nil
 	case spanner.NullString:
-		if v.Valid {
-			return stringLit(v.StringVal), nil
+		if !v.Valid {
+			return nullLit(), nil
 		}
-		return nullLit(), nil
+		return stringLit(v.StringVal), nil
 	case []byte:
 		if v == nil {
 			return nullLit(), nil
@@ -120,10 +120,22 @@ func toExpr(val interface{}) (ast.Expr, error) {
 		}
 		return intLit(*v), nil
 	case spanner.NullInt64:
-		if v.Valid {
-			return intLit(v.Int64), nil
+		if !v.Valid {
+			return nullLit(), nil
 		}
-		return nullLit(), nil
+		return intLit(v.Int64), nil
+	case bool:
+		return boolLit(v), nil
+	case *bool:
+		if v == nil {
+			return nullLit(), nil
+		}
+		return boolLit(*v), nil
+	case spanner.NullBool:
+		if !v.Valid {
+			return nullLit(), nil
+		}
+		return boolLit(v.Bool), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}
@@ -145,6 +157,12 @@ func intLit(v int64) *ast.IntLiteral {
 	return &ast.IntLiteral{
 		Base:  10,
 		Value: strconv.FormatInt(v, 10),
+	}
+}
+
+func boolLit(v bool) *ast.BoolLiteral {
+	return &ast.BoolLiteral{
+		Value: v,
 	}
 }
 

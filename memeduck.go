@@ -9,50 +9,39 @@ import (
 	"github.com/pkg/errors"
 )
 
-// InsertIntoBuilder builds INSERT statements.
-type InsertIntoBuilder struct {
+// InsertStmt builds INSERT statements.
+type InsertStmt struct {
 	table string
 	cols  []string
+	input interface{}
 }
 
 // Insert creates a new InsertBuilder with given table name and column names.
-func InsertInto(table string, cols []string) *InsertIntoBuilder {
-	return &InsertIntoBuilder{
+func Insert(table string, cols []string, input interface{}) *InsertStmt {
+	return &InsertStmt{
 		table: table,
 		cols:  cols,
+		input: input,
 	}
 }
 
-// Values adds a VALUES clause to the insert statement.
-func (ib *InsertIntoBuilder) Values(rows interface{}) *InsertIntoValuesBuilder {
-	return &InsertIntoValuesBuilder{
-		ib:   ib,
-		rows: rows,
-	}
-}
-
-// InsertIntoValuesBuilder builds INSERT statements with VALUES clauses.
-type InsertIntoValuesBuilder struct {
-	ib   *InsertIntoBuilder
-	rows interface{}
-}
-
-func (ivb *InsertIntoValuesBuilder) SQL() (string, error) {
-	stmt, err := ivb.toStmt()
+func (is *InsertStmt) SQL() (string, error) {
+	stmt, err := is.toAST()
 	if err != nil {
 		return "", err
 	}
 	return stmt.SQL(), nil
 }
 
-func (ivb *InsertIntoValuesBuilder) toStmt() (*ast.Insert, error) {
-	cols := make([]*ast.Ident, 0, len(ivb.ib.cols))
-	for _, name := range ivb.ib.cols {
+func (is *InsertStmt) toAST() (*ast.Insert, error) {
+	cols := make([]*ast.Ident, 0, len(is.cols))
+	for _, name := range is.cols {
 		cols = append(cols, &ast.Ident{Name: name})
 	}
 	input := &ast.ValuesInput{}
 	// TODO: check types
-	rowsV := reflect.ValueOf(ivb.rows)
+	// TODO: support SELECT
+	rowsV := reflect.ValueOf(is.input)
 	for i := 0; i < rowsV.Len(); i++ {
 		rowI := rowsV.Index(i).Interface()
 		row, err := toValuesRow(rowI)
@@ -62,7 +51,7 @@ func (ivb *InsertIntoValuesBuilder) toStmt() (*ast.Insert, error) {
 		input.Rows = append(input.Rows, row)
 	}
 	return &ast.Insert{
-		TableName: &ast.Ident{Name: ivb.ib.table},
+		TableName: &ast.Ident{Name: is.table},
 		Columns:   cols,
 		Input:     input,
 	}, nil

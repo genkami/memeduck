@@ -7,14 +7,14 @@ import (
 )
 
 func TestInsert(t *testing.T) {
-	test := func(ivb *InsertIntoValuesBuilder, expected string) {
-		actual, err := ivb.SQL()
+	test := func(is *InsertStmt, expected string) {
+		actual, err := is.SQL()
 		assert.Nil(t, err, expected)
 		assert.Equal(t, expected, actual)
 	}
 
 	test(
-		InsertInto("person", []string{"age", "height"}).Values([][]int{
+		Insert("person", []string{"age", "height"}, [][]int{
 			[]int{1600, 143},
 		}),
 		"INSERT INTO person (age, height) VALUES (1600, 143)",

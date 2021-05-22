@@ -18,6 +18,16 @@ func testInsert(t *testing.T, stmt *memeduck.InsertStmt, expected string) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestInsertWithEmpty(t *testing.T) {
+	_, err := memeduck.Insert("hoge", []string{"a", "b"}, [][]int{}).SQL()
+	assert.Error(t, err, "empty values")
+}
+
+func TestInsertWithNonSliceArgument(t *testing.T) {
+	_, err := memeduck.Insert("hoge", []string{"a", "b"}, map[string]string{"hoge": "fuga"}).SQL()
+	assert.Error(t, err, "non-slice argument")
+}
+
 func TestInsertWithNilInterfaceSlice(t *testing.T) {
 	testInsert(t,
 		memeduck.Insert("hoge", []string{"a", "b"}, [][]interface{}{

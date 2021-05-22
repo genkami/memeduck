@@ -45,6 +45,12 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 	// TODO: check types
 	// TODO: support SELECT
 	rowsV := reflect.ValueOf(is.input)
+	if rowsV.Type().Kind() != reflect.Slice {
+		return nil, errors.New("values it not a slice")
+	}
+	if rowsV.Len() <= 0 {
+		return nil, errors.New("empty values")
+	}
 	for i := 0; i < rowsV.Len(); i++ {
 		rowI := rowsV.Index(i).Interface()
 		row, err := toValuesRow(rowI)

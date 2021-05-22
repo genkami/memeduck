@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
 	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/pkg/errors"
@@ -65,7 +66,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 // []int, []int64, []*int64, []NullInt64 - INT64 ARRAY
 // []bool, []*bool, []NullBool - BOOL ARRAY
 // []float64, []*float64, []NullFloat64 - FLOAT64 ARRAY
-// time.Time, *time.Time, NullTime - TIMESTAMP
 // []time.Time, []*time.Time, []NullTime - TIMESTAMP ARRAY
 // Date, *Date, NullDate - DATE
 // []Date, []*Date, []NullDate - DATE ARRAY
@@ -159,6 +159,18 @@ func toExpr(val interface{}) (ast.Expr, error) {
 			return nullLit(), nil
 		}
 		return timeLit(v.Time), nil
+	case civil.Date:
+		return dateLit(v), nil
+	case *civil.Date:
+		if v == nil {
+			return nullLit(), nil
+		}
+		return dateLit(*v), nil
+	case spanner.NullDate:
+		if !v.Valid {
+			return nullLit(), nil
+		}
+		return dateLit(v.Date), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}
@@ -195,10 +207,18 @@ func floatLit(v float64) *ast.FloatLiteral {
 	}
 }
 
-func timeLit(t time.Time) *ast.TimestampLiteral {
+func timeLit(v time.Time) *ast.TimestampLiteral {
 	return &ast.TimestampLiteral{
 		Value: &ast.StringLiteral{
-			Value: t.Format(time.RFC3339Nano),
+			Value: v.Format(time.RFC3339Nano),
+		},
+	}
+}
+
+func dateLit(v civil.Date) *ast.DateLiteral {
+	return &ast.DateLiteral{
+		Value: &ast.StringLiteral{
+			Value: v.String(),
 		},
 	}
 }

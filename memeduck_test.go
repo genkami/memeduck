@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
 	"github.com/stretchr/testify/assert"
 
@@ -311,8 +312,56 @@ func TestInsertWithNullTimeSlice(t *testing.T) {
 	)
 }
 
+func TestInsertWithDateSlice(t *testing.T) {
+	var a = parseDate(t, "2024-03-02")
+	var b = parseDate(t, "2025-06-20")
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b"}, [][]civil.Date{
+			{a, b},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (`+
+			`DATE "2024-03-02", `+
+			`DATE "2025-06-20")`,
+	)
+}
+
+func TestInsertWithNullDateSlice(t *testing.T) {
+	var a = spanner.NullDate{Date: parseDate(t, "2024-03-02"), Valid: true}
+	var b = spanner.NullDate{Date: parseDate(t, "2025-06-20"), Valid: true}
+	var c = spanner.NullDate{}
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][]spanner.NullDate{
+			{a, b, c},
+		}),
+		`INSERT INTO hoge (a, b, c) VALUES (`+
+			`DATE "2024-03-02", `+
+			`DATE "2025-06-20", `+
+			`NULL)`,
+	)
+}
+
+func TestInsertWithDatePtrSlice(t *testing.T) {
+	var a = parseDate(t, "2024-03-02")
+	var b = parseDate(t, "2025-06-20")
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][]*civil.Date{
+			{&a, &b, nil},
+		}),
+		`INSERT INTO hoge (a, b, c) VALUES (`+
+			`DATE "2024-03-02", `+
+			`DATE "2025-06-20", `+
+			`NULL)`,
+	)
+}
+
 func parseTime(t *testing.T, s string) time.Time {
 	ts, err := time.Parse(time.RFC3339Nano, s)
 	assert.Nil(t, err, "failed to parse %s", s)
 	return ts
+}
+
+func parseDate(t *testing.T, s string) civil.Date {
+	d, err := civil.ParseDate(s)
+	assert.Nil(t, err, "failed to parse %s", s)
+	return d
 }

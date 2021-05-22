@@ -62,7 +62,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 // []string, []*string, []NullString - STRING ARRAY
 // [][]byte - BYTES ARRAY
 // []int, []int64, []*int64, []NullInt64 - INT64 ARRAY
-// bool, *bool, NullBool - BOOL
 // []bool, []*bool, []NullBool - BOOL ARRAY
 // float64, *float64, NullFloat64 - FLOAT64
 // []float64, []*float64, []NullFloat64 - FLOAT64 ARRAY

@@ -59,7 +59,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 }
 
 // TODO:
-// string, *string, NullString - STRING
 // []string, []*string, []NullString - STRING ARRAY
 // []byte - BYTES
 // [][]byte - BYTES ARRAY
@@ -90,6 +89,18 @@ func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 
 func toExpr(val interface{}) (ast.Expr, error) {
 	switch v := val.(type) {
+	case string:
+		return stringLit(v), nil
+	case *string:
+		if v == nil {
+			return nullLit(), nil
+		}
+		return stringLit(*v), nil
+	case spanner.NullString:
+		if v.Valid {
+			return stringLit(v.StringVal), nil
+		}
+		return nullLit(), nil
 	case int:
 		return intLit(int64(v)), nil
 	case *int:
@@ -111,6 +122,12 @@ func toExpr(val interface{}) (ast.Expr, error) {
 		return nullLit(), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
+	}
+}
+
+func stringLit(v string) *ast.StringLiteral {
+	return &ast.StringLiteral{
+		Value: v,
 	}
 }
 

@@ -13,6 +13,50 @@ func testInsert(t *testing.T, stmt *InsertStmt, expected string) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestInsertWithStringSlice(t *testing.T) {
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]string{
+			{"foo", "bar"},
+		}),
+		`INSERT INTO hoge (a, b) VALUES ("foo", "bar")`,
+	)
+}
+
+func TestInsertWithStringPtrSlice(t *testing.T) {
+	var a = "foo"
+	var b = "bar"
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]*string{
+			{&a, &b},
+		}),
+		`INSERT INTO hoge (a, b) VALUES ("foo", "bar")`,
+	)
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]*string{
+			{nil, nil},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}
+
+func TestInsertWithNullStringSlice(t *testing.T) {
+	var a = spanner.NullString{StringVal: "foo", Valid: true}
+	var b = spanner.NullString{StringVal: "bar", Valid: true}
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]spanner.NullString{
+			{a, b},
+		}),
+		`INSERT INTO hoge (a, b) VALUES ("foo", "bar")`,
+	)
+	var null = spanner.NullString{}
+	testInsert(t,
+		Insert("hoge", []string{"a", "b"}, [][]spanner.NullString{
+			{null, null},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}
+
 func TestInsertWithIntSlice(t *testing.T) {
 	testInsert(t,
 		Insert("hoge", []string{"a", "b"}, [][]int{

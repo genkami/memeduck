@@ -1,5 +1,4 @@
-// Package where provides builders that helps to create WHERE clauses.
-package where
+package memeduck
 
 import (
 	"github.com/MakeNowJust/memefish/pkg/ast"

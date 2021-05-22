@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/genkami/memeduck"
-	"github.com/genkami/memeduck/where"
 )
 
 func testDelete(t *testing.T, stmt *memeduck.DeleteStmt, expected string) {
@@ -17,14 +16,14 @@ func testDelete(t *testing.T, stmt *memeduck.DeleteStmt, expected string) {
 
 func TestDeleteWithBool(t *testing.T) {
 	testDelete(t,
-		memeduck.Delete("hoge", where.Bool(true)),
+		memeduck.Delete("hoge", memeduck.Bool(true)),
 		`DELETE FROM hoge WHERE TRUE`,
 	)
 }
 
 func TestDeleteWithBinaryOp(t *testing.T) {
 	testDelete(t,
-		memeduck.Delete("hoge", where.Op(1, where.EQ, 2)),
+		memeduck.Delete("hoge", memeduck.Op(1, memeduck.EQ, 2)),
 		`DELETE FROM hoge WHERE 1 = 2`,
 	)
 }

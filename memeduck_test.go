@@ -608,6 +608,22 @@ func TestInsertWithNullDateSliceSlice(t *testing.T) {
 	)
 }
 
+func TestInsertWithHeteroSlice(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]interface{}{
+			{int64(123), "45", []byte{6}, nil},
+		}),
+		`INSERT INTO hoge (a, b, c, d) VALUES (123, "45", B"\x06", NULL)`,
+	)
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, []interface{}{
+			[]interface{}{int64(123), "45", []byte{6}, nil},
+			[]int{1, 2, 3, 4},
+		}),
+		`INSERT INTO hoge (a, b, c, d) VALUES (123, "45", B"\x06", NULL), (1, 2, 3, 4)`,
+	)
+}
+
 func parseTime(t *testing.T, s string) time.Time {
 	ts, err := time.Parse(time.RFC3339Nano, s)
 	assert.Nil(t, err, "failed to parse %s", s)

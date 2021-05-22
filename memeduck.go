@@ -135,6 +135,18 @@ func toExpr(val interface{}) (ast.Expr, error) {
 			return nullLit(), nil
 		}
 		return boolLit(v.Bool), nil
+	case float64:
+		return floatLit(v), nil
+	case *float64:
+		if v == nil {
+			return nullLit(), nil
+		}
+		return floatLit(*v), nil
+	case spanner.NullFloat64:
+		if !v.Valid {
+			return nullLit(), nil
+		}
+		return floatLit(v.Float64), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}
@@ -162,6 +174,12 @@ func intLit(v int64) *ast.IntLiteral {
 func boolLit(v bool) *ast.BoolLiteral {
 	return &ast.BoolLiteral{
 		Value: v,
+	}
+}
+
+func floatLit(v float64) *ast.FloatLiteral {
+	return &ast.FloatLiteral{
+		Value: strconv.FormatFloat(v, 'e', -1, 64),
 	}
 }
 

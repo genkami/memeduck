@@ -1,6 +1,7 @@
 package memeduck_test
 
 import (
+	"math"
 	"testing"
 
 	"cloud.google.com/go/spanner"
@@ -185,5 +186,72 @@ func TestInsertWithNullBoolSlice(t *testing.T) {
 			{null, null},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}
+
+func TestInsertWithFloat64Slice(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}, [][]float64{
+			{
+				1.0,
+				0,
+				3.1415926535,
+				math.NaN(),
+				math.Inf(1),
+				math.Inf(-1),
+			},
+		}),
+		`INSERT INTO hoge (a, b, c, d, e, f) VALUES (`+
+			`1e+00, `+
+			`0e+00, `+
+			`3.1415926535e+00, `+
+			`NaN, `+
+			`+Inf, `+
+			`-Inf)`,
+	)
+}
+
+func TestInsertWithFloat64PtrSlice(t *testing.T) {
+	var a float64 = 1.0
+	var b float64 = 0
+	var c float64 = 3.1415926535
+	var d float64 = math.NaN()
+	var e float64 = math.Inf(1)
+	var f float64 = math.Inf(-1)
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}, [][]*float64{
+			{&a, &b, &c, &d, &e, &f, nil},
+		}),
+		`INSERT INTO hoge (a, b, c, d, e, f) VALUES (`+
+			`1e+00, `+
+			`0e+00, `+
+			`3.1415926535e+00, `+
+			`NaN, `+
+			`+Inf, `+
+			`-Inf, `+
+			`NULL)`,
+	)
+}
+
+func TestInsertWithNullFloat64Slice(t *testing.T) {
+	var a = spanner.NullFloat64{Float64: 1.0, Valid: true}
+	var b = spanner.NullFloat64{Float64: 0, Valid: true}
+	var c = spanner.NullFloat64{Float64: 3.1415926535, Valid: true}
+	var d = spanner.NullFloat64{Float64: math.NaN(), Valid: true}
+	var e = spanner.NullFloat64{Float64: math.Inf(1), Valid: true}
+	var f = spanner.NullFloat64{Float64: math.Inf(-1), Valid: true}
+	var g = spanner.NullFloat64{}
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}, [][]spanner.NullFloat64{
+			{a, b, c, d, e, f, g},
+		}),
+		`INSERT INTO hoge (a, b, c, d, e, f) VALUES (`+
+			`1e+00, `+
+			`0e+00, `+
+			`3.1415926535e+00, `+
+			`NaN, `+
+			`+Inf, `+
+			`-Inf, `+
+			`NULL)`,
 	)
 }

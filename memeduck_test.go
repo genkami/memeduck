@@ -18,6 +18,15 @@ func testInsert(t *testing.T, stmt *memeduck.InsertStmt, expected string) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestInsertWithNilInterfaceSlice(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b"}, [][]interface{}{
+			{nil, nil},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
+	)
+}
+
 func TestInsertWithStringSlice(t *testing.T) {
 	testInsert(t,
 		memeduck.Insert("hoge", []string{"a", "b"}, [][]string{

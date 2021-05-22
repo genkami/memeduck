@@ -76,6 +76,8 @@ func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 
 func toExpr(val interface{}) (ast.Expr, error) {
 	switch v := val.(type) {
+	case nil:
+		return nullLit(), nil
 	case string:
 		return stringLit(v), nil
 	case *string:

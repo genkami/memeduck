@@ -60,17 +60,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 	}, nil
 }
 
-// TODO:
-// []string, []*string, []NullString - STRING ARRAY
-// [][]byte - BYTES ARRAY
-// []int, []int64, []*int64, []NullInt64 - INT64 ARRAY
-// []bool, []*bool, []NullBool - BOOL ARRAY
-// []float64, []*float64, []NullFloat64 - FLOAT64 ARRAY
-// []time.Time, []*time.Time, []NullTime - TIMESTAMP ARRAY
-// Date, *Date, NullDate - DATE
-// []Date, []*Date, []NullDate - DATE ARRAY
-// big.Rat, *big.Rat, NullNumeric - NUMERIC
-// []big.Rat, []*big.Rat, []NullNumeric - NUMERIC ARRAY
 func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 	row := &ast.ValuesRow{}
 	valV := reflect.ValueOf(val)
@@ -172,7 +161,25 @@ func toExpr(val interface{}) (ast.Expr, error) {
 		}
 		return dateLit(v.Date), nil
 	default:
-		return nil, errors.Errorf("can't convert %T into SQL expr", val)
+		// TODO: support big.Rat
+		// Slices
+		valV := reflect.ValueOf(val)
+		if valV.Type().Kind() == reflect.Slice {
+			exprs := make([]ast.Expr, 0, valV.Len())
+			for i := 0; i < valV.Len(); i++ {
+				vi := valV.Index(i).Interface()
+				ei, err := toExpr(vi)
+				if err != nil {
+					return nil, errors.WithMessagef(err, "at index %d", i)
+				}
+				exprs = append(exprs, ei)
+			}
+			return arrayLit(exprs), nil
+		} else {
+			// TODO: support Go structs
+			return nil, errors.Errorf("can't convert %T into SQL expr", val)
+
+		}
 	}
 }
 
@@ -220,6 +227,12 @@ func dateLit(v civil.Date) *ast.DateLiteral {
 		Value: &ast.StringLiteral{
 			Value: v.String(),
 		},
+	}
+}
+
+func arrayLit(exprs []ast.Expr) *ast.ArrayLiteral {
+	return &ast.ArrayLiteral{
+		Values: exprs,
 	}
 }
 

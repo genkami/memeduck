@@ -50,17 +50,26 @@ func (ds *DeleteStmt) toAST() (*ast.Delete, error) {
 
 // InsertStmt builds INSERT statements.
 type InsertStmt struct {
-	table string
-	cols  []string
-	input interface{}
+	table  string
+	cols   []string
+	values interface{}
 }
 
-// Insert creates a new InsertStmt with given table name and column names.
-func Insert(table string, cols []string, input interface{}) *InsertStmt {
+// Insert creates a new InsertStmt with given table name. and column names.
+func Insert(table string, cols []string) *InsertStmt {
 	return &InsertStmt{
 		table: table,
 		cols:  cols,
-		input: input,
+	}
+}
+
+// Values returns an InsertStmt with its values set to given ones.
+// It replaces existing values.
+func (s *InsertStmt) Values(values interface{}) *InsertStmt {
+	return &InsertStmt{
+		table:  s.table,
+		cols:   s.cols,
+		values: values,
 	}
 }
 
@@ -72,14 +81,14 @@ func (is *InsertStmt) SQL() (string, error) {
 	return stmt.SQL(), nil
 }
 
-func (is *InsertStmt) toAST() (*ast.Insert, error) {
-	cols := make([]*ast.Ident, 0, len(is.cols))
-	for _, name := range is.cols {
+func (s *InsertStmt) toAST() (*ast.Insert, error) {
+	cols := make([]*ast.Ident, 0, len(s.cols))
+	for _, name := range s.cols {
 		cols = append(cols, &ast.Ident{Name: name})
 	}
 	input := &ast.ValuesInput{}
 	// TODO: support SELECT
-	rowsV := reflect.ValueOf(is.input)
+	rowsV := reflect.ValueOf(s.values)
 	if rowsV.Type().Kind() != reflect.Slice {
 		return nil, errors.New("values it not a slice")
 	}
@@ -95,7 +104,7 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 		input.Rows = append(input.Rows, row)
 	}
 	return &ast.Insert{
-		TableName: &ast.Ident{Name: is.table},
+		TableName: &ast.Ident{Name: s.table},
 		Columns:   cols,
 		Input:     input,
 	}, nil

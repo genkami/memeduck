@@ -21,18 +21,18 @@ func testInsert(t *testing.T, stmt *memeduck.InsertStmt, expected string) {
 }
 
 func TestInsertWithEmpty(t *testing.T) {
-	_, err := memeduck.Insert("hoge", []string{"a", "b"}, [][]int{}).SQL()
+	_, err := memeduck.Insert("hoge", []string{"a", "b"}).Values([][]int{}).SQL()
 	assert.Error(t, err, "empty values")
 }
 
 func TestInsertWithNonSliceArgument(t *testing.T) {
-	_, err := memeduck.Insert("hoge", []string{"a", "b"}, map[string]string{"hoge": "fuga"}).SQL()
+	_, err := memeduck.Insert("hoge", []string{"a", "b"}).Values(map[string]string{"hoge": "fuga"}).SQL()
 	assert.Error(t, err, "non-slice argument")
 }
 
 func TestInsertWithNilInterfaceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]interface{}{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]interface{}{
 			{nil, nil},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -41,7 +41,7 @@ func TestInsertWithNilInterfaceSlice(t *testing.T) {
 
 func TestInsertWithStringSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]string{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]string{
 			{"foo", "bar"},
 		}),
 		`INSERT INTO hoge (a, b) VALUES ("foo", "bar")`,
@@ -50,7 +50,7 @@ func TestInsertWithStringSlice(t *testing.T) {
 
 func TestInsertWithStringSliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][][]string{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][][]string{
 			{{}, {"a"}, {"b", "c"}},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (ARRAY[], ARRAY["a"], ARRAY["b", "c"])`,
@@ -61,13 +61,13 @@ func TestInsertWithStringPtrSlice(t *testing.T) {
 	var a = "foo"
 	var b = "bar"
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*string{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*string{
 			{&a, &b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES ("foo", "bar")`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*string{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*string{
 			{nil, nil},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -78,7 +78,7 @@ func TestInsertWithStringPtrSliceSlice(t *testing.T) {
 	var a = "foo"
 	var b = "bar"
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*string{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*string{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY["foo"], ARRAY["bar", NULL])`,
@@ -89,14 +89,14 @@ func TestInsertWithNullStringSlice(t *testing.T) {
 	var a = spanner.NullString{StringVal: "foo", Valid: true}
 	var b = spanner.NullString{StringVal: "bar", Valid: true}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]spanner.NullString{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]spanner.NullString{
 			{a, b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES ("foo", "bar")`,
 	)
 	var null = spanner.NullString{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]spanner.NullString{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]spanner.NullString{
 			{null, null},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -108,7 +108,7 @@ func TestInsertWithNullStringSliceSlice(t *testing.T) {
 	var b = spanner.NullString{StringVal: "bar", Valid: true}
 	var null = spanner.NullString{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]spanner.NullString{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]spanner.NullString{
 			{{}, {a}, {b, null}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY["foo"], ARRAY["bar", NULL])`,
@@ -117,13 +117,13 @@ func TestInsertWithNullStringSliceSlice(t *testing.T) {
 
 func TestInsertWithByteSliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][][]byte{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][][]byte{
 			{{0, 1}, {2, 3, 4}},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (B"\x00\x01", B"\x02\x03\x04")`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][][]byte{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][][]byte{
 			{nil, nil},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -132,7 +132,7 @@ func TestInsertWithByteSliceSlice(t *testing.T) {
 
 func TestInsertWithByteSliceSliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][][]byte{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][][]byte{
 			{{}, {{0, 1}}, {{2, 3, 4}, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[B"\x00\x01"], ARRAY[B"\x02\x03\x04", NULL])`,
@@ -141,7 +141,7 @@ func TestInsertWithByteSliceSliceSlice(t *testing.T) {
 
 func TestInsertWithIntSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]int{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]int{
 			{123, 456},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
@@ -150,7 +150,7 @@ func TestInsertWithIntSlice(t *testing.T) {
 
 func TestInsertWithIntSliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]int{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]int{
 			{{}, {123}, {456, 789}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[123], ARRAY[456, 789])`,
@@ -161,13 +161,13 @@ func TestInsertWithIntPtrSlice(t *testing.T) {
 	var a = int(123)
 	var b = int(456)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*int{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*int{
 			{&a, &b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*int{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*int{
 			{nil, nil},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -178,7 +178,7 @@ func TestInsertWithIntPtrSliceSlice(t *testing.T) {
 	var a = int(123)
 	var b = int(456)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*int{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*int{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[123], ARRAY[456, NULL])`,
@@ -187,7 +187,7 @@ func TestInsertWithIntPtrSliceSlice(t *testing.T) {
 
 func TestInsertWithInt64Slice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]int64{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]int64{
 			{123, 456},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
@@ -196,7 +196,7 @@ func TestInsertWithInt64Slice(t *testing.T) {
 
 func TestInsertWithInt64SliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]int64{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]int64{
 			{{}, {123}, {456, 789}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[123], ARRAY[456, 789])`,
@@ -207,13 +207,13 @@ func TestInsertWithInt64PtrSlice(t *testing.T) {
 	var a = int64(123)
 	var b = int64(456)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*int64{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*int64{
 			{&a, &b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*int64{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*int64{
 			{nil, nil},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -224,7 +224,7 @@ func TestInsertWithInt64PtrSliceSlice(t *testing.T) {
 	var a = int64(123)
 	var b = int64(456)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*int64{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*int64{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[123], ARRAY[456, NULL])`,
@@ -236,13 +236,13 @@ func TestInsertWithNullInt64Slice(t *testing.T) {
 	var b = spanner.NullInt64{Int64: 456, Valid: true}
 	var null = spanner.NullInt64{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]spanner.NullInt64{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]spanner.NullInt64{
 			{a, b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]spanner.NullInt64{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]spanner.NullInt64{
 			{null, null},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -254,7 +254,7 @@ func TestInsertWithNullInt64SliceSlice(t *testing.T) {
 	var b = spanner.NullInt64{Int64: 456, Valid: true}
 	var null = spanner.NullInt64{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]spanner.NullInt64{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]spanner.NullInt64{
 			{{}, {a}, {b, null}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[123], ARRAY[456, NULL])`,
@@ -263,7 +263,7 @@ func TestInsertWithNullInt64SliceSlice(t *testing.T) {
 
 func TestInsertWithBoolSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]bool{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]bool{
 			{true, false},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (TRUE, FALSE)`,
@@ -272,7 +272,7 @@ func TestInsertWithBoolSlice(t *testing.T) {
 
 func TestInsertWithBoolSliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]bool{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]bool{
 			{{}, {true}, {false, true}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[TRUE], ARRAY[FALSE, TRUE])`,
@@ -283,13 +283,13 @@ func TestInsertWithBoolPtrSlice(t *testing.T) {
 	var a = true
 	var b = false
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*bool{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*bool{
 			{&a, &b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (TRUE, FALSE)`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*bool{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*bool{
 			{nil, nil},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -300,7 +300,7 @@ func TestInsertWithBoolPtrSliceSlice(t *testing.T) {
 	var a = true
 	var b = false
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*bool{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*bool{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[TRUE], ARRAY[FALSE, NULL])`,
@@ -311,14 +311,14 @@ func TestInsertWithNullBoolSlice(t *testing.T) {
 	var a = spanner.NullBool{Bool: true, Valid: true}
 	var b = spanner.NullBool{Bool: false, Valid: true}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]spanner.NullBool{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]spanner.NullBool{
 			{a, b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (TRUE, FALSE)`,
 	)
 	var null = spanner.NullBool{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]spanner.NullBool{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]spanner.NullBool{
 			{null, null},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
@@ -330,7 +330,7 @@ func TestInsertWithNullBoolSliceSlice(t *testing.T) {
 	var b = spanner.NullBool{Bool: false, Valid: true}
 	var null = spanner.NullBool{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]spanner.NullBool{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]spanner.NullBool{
 			{{}, {a}, {b, null}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[TRUE], ARRAY[FALSE, NULL])`,
@@ -339,7 +339,7 @@ func TestInsertWithNullBoolSliceSlice(t *testing.T) {
 
 func TestInsertWithFloat64Slice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}, [][]float64{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}).Values([][]float64{
 			{
 				1.0,
 				0,
@@ -361,7 +361,7 @@ func TestInsertWithFloat64Slice(t *testing.T) {
 
 func TestInsertWithFloat64SliceSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]float64{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]float64{
 			{{}, {0}, {31.5, math.Inf(1)}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[0e+00], ARRAY[3.15e+01, +Inf])`,
@@ -376,7 +376,7 @@ func TestInsertWithFloat64PtrSlice(t *testing.T) {
 	var e float64 = math.Inf(1)
 	var f float64 = math.Inf(-1)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}, [][]*float64{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}).Values([][]*float64{
 			{&a, &b, &c, &d, &e, &f, nil},
 		}),
 		`INSERT INTO hoge (a, b, c, d, e, f) VALUES (`+
@@ -394,7 +394,7 @@ func TestInsertWithFloat64PtrSliceSlice(t *testing.T) {
 	var a float64 = 0
 	var b float64 = 31.5
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*float64{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*float64{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[0e+00], ARRAY[3.15e+01, NULL])`,
@@ -410,7 +410,7 @@ func TestInsertWithNullFloat64Slice(t *testing.T) {
 	var f = spanner.NullFloat64{Float64: math.Inf(-1), Valid: true}
 	var g = spanner.NullFloat64{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}, [][]spanner.NullFloat64{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d", "e", "f"}).Values([][]spanner.NullFloat64{
 			{a, b, c, d, e, f, g},
 		}),
 		`INSERT INTO hoge (a, b, c, d, e, f) VALUES (`+
@@ -429,7 +429,7 @@ func TestInsertWithNullFloat64SliceSlice(t *testing.T) {
 	var b = spanner.NullFloat64{Float64: 31.5, Valid: true}
 	var null = spanner.NullFloat64{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]spanner.NullFloat64{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]spanner.NullFloat64{
 			{{}, {a}, {b, null}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (ARRAY[], ARRAY[0e+00], ARRAY[3.15e+01, NULL])`,
@@ -442,7 +442,7 @@ func TestInsertWithTimeSlice(t *testing.T) {
 	var c = parseTime(t, "2022-12-08T14:22:51.837583-04:30")
 	var d = parseTime(t, "2023-10-10T08:43:17.536829+00:00")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]time.Time{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([][]time.Time{
 			{a, b, c, d},
 		}),
 		`INSERT INTO hoge (a, b, c, d) VALUES (`+
@@ -458,7 +458,7 @@ func TestInsertWithTimeSliceSlice(t *testing.T) {
 	var b = parseTime(t, "2021-08-10T00:01:23.456789+09:00")
 	var c = parseTime(t, "2022-12-08T14:22:51.837583-04:30")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]time.Time{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]time.Time{
 			{{}, {a}, {b, c}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -475,7 +475,7 @@ func TestInsertWithTimePtrSlice(t *testing.T) {
 	var c = parseTime(t, "2022-12-08T14:22:51.837583-04:30")
 	var d = parseTime(t, "2023-10-10T08:43:17.536829+00:00")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]*time.Time{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([][]*time.Time{
 			{&a, &b, &c, &d, nil},
 		}),
 		`INSERT INTO hoge (a, b, c, d) VALUES (`+
@@ -491,7 +491,7 @@ func TestInsertWithTimePtrSliceSlice(t *testing.T) {
 	var a = parseTime(t, "2020-06-06T12:34:56.123456Z")
 	var b = parseTime(t, "2021-08-10T00:01:23.456789+09:00")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*time.Time{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*time.Time{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -508,7 +508,7 @@ func TestInsertWithNullTimeSlice(t *testing.T) {
 	var d = spanner.NullTime{Time: parseTime(t, "2023-10-10T08:43:17.536829+00:00"), Valid: true}
 	var e = spanner.NullTime{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]spanner.NullTime{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([][]spanner.NullTime{
 			{a, b, c, d, e},
 		}),
 		`INSERT INTO hoge (a, b, c, d) VALUES (`+
@@ -525,7 +525,7 @@ func TestInsertWithNullTimeSliceSlice(t *testing.T) {
 	var b = spanner.NullTime{Time: parseTime(t, "2021-08-10T00:01:23.456789+09:00"), Valid: true}
 	var null = spanner.NullTime{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]spanner.NullTime{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]spanner.NullTime{
 			{{}, {a}, {b, null}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -539,7 +539,7 @@ func TestInsertWithDateSlice(t *testing.T) {
 	var a = parseDate(t, "2024-03-02")
 	var b = parseDate(t, "2025-06-20")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]civil.Date{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]civil.Date{
 			{a, b},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (`+
@@ -553,7 +553,7 @@ func TestInsertWithDateSliceSlice(t *testing.T) {
 	var b = parseDate(t, "2025-06-20")
 	var c = parseDate(t, "2026-03-05")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]civil.Date{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]civil.Date{
 			{{}, {a}, {b, c}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -567,7 +567,7 @@ func TestInsertWithDatePtrSlice(t *testing.T) {
 	var a = parseDate(t, "2024-03-02")
 	var b = parseDate(t, "2025-06-20")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][]*civil.Date{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][]*civil.Date{
 			{&a, &b, nil},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -581,7 +581,7 @@ func TestInsertWithDatePtrSliceSlice(t *testing.T) {
 	var a = parseDate(t, "2024-03-02")
 	var b = parseDate(t, "2025-06-20")
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]*civil.Date{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]*civil.Date{
 			{{}, {&a}, {&b, nil}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -595,7 +595,7 @@ func TestInsertWithNullDateSlice(t *testing.T) {
 	var b = spanner.NullDate{Date: parseDate(t, "2025-06-20"), Valid: true}
 	var c = spanner.NullDate{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][]spanner.NullDate{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][]spanner.NullDate{
 			{a, b, c},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -610,7 +610,7 @@ func TestInsertWithNullDateSliceSlice(t *testing.T) {
 	var b = spanner.NullDate{Date: parseDate(t, "2025-06-20"), Valid: true}
 	var null = spanner.NullDate{}
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c"}, [][][]spanner.NullDate{
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([][][]spanner.NullDate{
 			{{}, {a}, {b, null}},
 		}),
 		`INSERT INTO hoge (a, b, c) VALUES (`+
@@ -630,7 +630,7 @@ func (e *testInsertCustomExpr) ToASTExpr() ast.Expr {
 
 func TestInsertWithCustomExpr(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b"}, [][]*testInsertCustomExpr{
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*testInsertCustomExpr{
 			{&testInsertCustomExpr{"aaa", "bbb"}, &testInsertCustomExpr{"ccc", "ddd"}},
 		}),
 		`INSERT INTO hoge (a, b) VALUES (ARRAY["aaa", "bbb"], ARRAY["ccc", "ddd"])`,
@@ -639,13 +639,13 @@ func TestInsertWithCustomExpr(t *testing.T) {
 
 func TestInsertWithHeteroSlice(t *testing.T) {
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, [][]interface{}{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([][]interface{}{
 			{int64(123), "45", []byte{6}, nil},
 		}),
 		`INSERT INTO hoge (a, b, c, d) VALUES (123, "45", B"\x06", NULL)`,
 	)
 	testInsert(t,
-		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}, []interface{}{
+		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([]interface{}{
 			[]interface{}{int64(123), "45", []byte{6}, nil},
 			[]int{1, 2, 3, 4},
 		}),

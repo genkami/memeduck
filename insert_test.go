@@ -7,9 +7,11 @@ import (
 
 	"cloud.google.com/go/civil"
 	"cloud.google.com/go/spanner"
+	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/genkami/memeduck"
+	"github.com/genkami/memeduck/internal"
 )
 
 func testInsert(t *testing.T, stmt *memeduck.InsertStmt, expected string) {
@@ -615,6 +617,23 @@ func TestInsertWithNullDateSliceSlice(t *testing.T) {
 			`ARRAY[], `+
 			`ARRAY[DATE "2024-03-02"], `+
 			`ARRAY[DATE "2025-06-20", NULL])`,
+	)
+}
+
+type testInsertCustomExpr struct {
+	a, b string
+}
+
+func (e *testInsertCustomExpr) ToASTExpr() ast.Expr {
+	return internal.ArrayLit([]ast.Expr{internal.StringLit(e.a), internal.StringLit(e.b)})
+}
+
+func TestInsertWithCustomExpr(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b"}, [][]*testInsertCustomExpr{
+			{&testInsertCustomExpr{"aaa", "bbb"}, &testInsertCustomExpr{"ccc", "ddd"}},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (ARRAY["aaa", "bbb"], ARRAY["ccc", "ddd"])`,
 	)
 }
 

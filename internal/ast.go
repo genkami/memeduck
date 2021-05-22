@@ -11,6 +11,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// SpannerExpr is a type that can be converted into ast.Expr.
+type SpannerExpr interface {
+	ToASTExpr() ast.Expr
+}
+
 func ToExpr(val interface{}) (ast.Expr, error) {
 	switch v := val.(type) {
 	case nil:
@@ -100,6 +105,9 @@ func ToExpr(val interface{}) (ast.Expr, error) {
 		}
 		return DateLit(v.Date), nil
 	default:
+		if se, ok := val.(SpannerExpr); ok {
+			return se.ToASTExpr(), nil
+		}
 		// TODO: support big.Rat
 		// Slices
 		valV := reflect.ValueOf(val)

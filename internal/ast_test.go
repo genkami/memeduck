@@ -135,6 +135,16 @@ func TestAstWithNullDate(t *testing.T) {
 	testAst(t, spanner.NullDate{}, internal.NullLit())
 }
 
+type customExpr struct{}
+
+func (*customExpr) ToASTExpr() ast.Expr {
+	return internal.StringLit("custom expr")
+}
+
+func TestAstWithSpannerExpr(t *testing.T) {
+	testAst(t, &customExpr{}, internal.StringLit("custom expr"))
+}
+
 func TestAstWithSlice(t *testing.T) {
 	testAst(t,
 		[]interface{}{nil, nil},

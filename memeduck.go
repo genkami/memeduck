@@ -3,14 +3,50 @@ package memeduck
 
 import (
 	"reflect"
-	"strconv"
-	"time"
 
-	"cloud.google.com/go/civil"
-	"cloud.google.com/go/spanner"
 	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/pkg/errors"
+
+	"github.com/genkami/memeduck/internal"
 )
+
+// WhereCond is a conditional expression that appears in WHERE clauses.
+type WhereCond interface {
+	ToAstWhere() (*ast.Where, error)
+}
+
+// DeleteStmt build DELETE statements.
+type DeleteStmt struct {
+	table string
+	conds []WhereCond
+}
+
+// Delete creates a new DeleteStmt with given table name and where clause.
+func Delete(table string, conds ...WhereCond) *DeleteStmt {
+	return &DeleteStmt{
+		table: table,
+		conds: conds,
+	}
+}
+
+func (ds *DeleteStmt) SQL() (string, error) {
+	stmt, err := ds.toAST()
+	if err != nil {
+		return "", err
+	}
+	return stmt.SQL(), nil
+}
+
+func (ds *DeleteStmt) toAST() (*ast.Delete, error) {
+	cond, err := ds.conds[0].ToAstWhere()
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Delete{
+		TableName: &ast.Ident{Name: ds.table},
+		Where:     cond,
+	}, nil
+}
 
 // InsertStmt builds INSERT statements.
 type InsertStmt struct {
@@ -19,7 +55,7 @@ type InsertStmt struct {
 	input interface{}
 }
 
-// Insert creates a new InsertBuilder with given table name and column names.
+// Insert creates a new InsertStmt with given table name and column names.
 func Insert(table string, cols []string, input interface{}) *InsertStmt {
 	return &InsertStmt{
 		table: table,
@@ -42,7 +78,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 		cols = append(cols, &ast.Ident{Name: name})
 	}
 	input := &ast.ValuesInput{}
-	// TODO: check types
 	// TODO: support SELECT
 	rowsV := reflect.ValueOf(is.input)
 	if rowsV.Type().Kind() != reflect.Slice {
@@ -71,179 +106,11 @@ func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 	valV := reflect.ValueOf(val)
 	// TODO: check types
 	for i := 0; i < valV.Len(); i++ {
-		expr, err := toExpr(valV.Index(i).Interface())
+		expr, err := internal.ToExpr(valV.Index(i).Interface())
 		if err != nil {
 			return nil, err
 		}
 		row.Exprs = append(row.Exprs, &ast.DefaultExpr{Expr: expr})
 	}
 	return row, nil
-}
-
-func toExpr(val interface{}) (ast.Expr, error) {
-	switch v := val.(type) {
-	case nil:
-		return nullLit(), nil
-	case string:
-		return stringLit(v), nil
-	case *string:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return stringLit(*v), nil
-	case spanner.NullString:
-		if !v.Valid {
-			return nullLit(), nil
-		}
-		return stringLit(v.StringVal), nil
-	case []byte:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return bytesLit(v), nil
-	case int:
-		return intLit(int64(v)), nil
-	case *int:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return intLit(int64(*v)), nil
-	case int64:
-		return intLit(v), nil
-	case *int64:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return intLit(*v), nil
-	case spanner.NullInt64:
-		if !v.Valid {
-			return nullLit(), nil
-		}
-		return intLit(v.Int64), nil
-	case bool:
-		return boolLit(v), nil
-	case *bool:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return boolLit(*v), nil
-	case spanner.NullBool:
-		if !v.Valid {
-			return nullLit(), nil
-		}
-		return boolLit(v.Bool), nil
-	case float64:
-		return floatLit(v), nil
-	case *float64:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return floatLit(*v), nil
-	case spanner.NullFloat64:
-		if !v.Valid {
-			return nullLit(), nil
-		}
-		return floatLit(v.Float64), nil
-	case time.Time:
-		return timeLit(v), nil
-	case *time.Time:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return timeLit(*v), nil
-	case spanner.NullTime:
-		if !v.Valid {
-			return nullLit(), nil
-		}
-		return timeLit(v.Time), nil
-	case civil.Date:
-		return dateLit(v), nil
-	case *civil.Date:
-		if v == nil {
-			return nullLit(), nil
-		}
-		return dateLit(*v), nil
-	case spanner.NullDate:
-		if !v.Valid {
-			return nullLit(), nil
-		}
-		return dateLit(v.Date), nil
-	default:
-		// TODO: support big.Rat
-		// Slices
-		valV := reflect.ValueOf(val)
-		if valV.Type().Kind() == reflect.Slice {
-			exprs := make([]ast.Expr, 0, valV.Len())
-			for i := 0; i < valV.Len(); i++ {
-				vi := valV.Index(i).Interface()
-				ei, err := toExpr(vi)
-				if err != nil {
-					return nil, errors.WithMessagef(err, "at index %d", i)
-				}
-				exprs = append(exprs, ei)
-			}
-			return arrayLit(exprs), nil
-		} else {
-			// TODO: support Go structs
-			return nil, errors.Errorf("can't convert %T into SQL expr", val)
-
-		}
-	}
-}
-
-func stringLit(v string) *ast.StringLiteral {
-	return &ast.StringLiteral{
-		Value: v,
-	}
-}
-
-func bytesLit(v []byte) *ast.BytesLiteral {
-	return &ast.BytesLiteral{
-		Value: v,
-	}
-}
-
-func intLit(v int64) *ast.IntLiteral {
-	return &ast.IntLiteral{
-		Base:  10,
-		Value: strconv.FormatInt(v, 10),
-	}
-}
-
-func boolLit(v bool) *ast.BoolLiteral {
-	return &ast.BoolLiteral{
-		Value: v,
-	}
-}
-
-func floatLit(v float64) *ast.FloatLiteral {
-	return &ast.FloatLiteral{
-		Value: strconv.FormatFloat(v, 'e', -1, 64),
-	}
-}
-
-func timeLit(v time.Time) *ast.TimestampLiteral {
-	return &ast.TimestampLiteral{
-		Value: &ast.StringLiteral{
-			Value: v.Format(time.RFC3339Nano),
-		},
-	}
-}
-
-func dateLit(v civil.Date) *ast.DateLiteral {
-	return &ast.DateLiteral{
-		Value: &ast.StringLiteral{
-			Value: v.String(),
-		},
-	}
-}
-
-func arrayLit(exprs []ast.Expr) *ast.ArrayLiteral {
-	return &ast.ArrayLiteral{
-		Values: exprs,
-	}
-}
-
-func nullLit() *ast.NullLiteral {
-	return &ast.NullLiteral{}
 }

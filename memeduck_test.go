@@ -77,7 +77,7 @@ func TestInsertWithIntSlice(t *testing.T) {
 		Insert("hoge", []string{"a", "b"}, [][]int{
 			{123, 456},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (123, 456)",
+		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 }
 
@@ -88,13 +88,13 @@ func TestInsertWithIntPtrSlice(t *testing.T) {
 		Insert("hoge", []string{"a", "b"}, [][]*int{
 			{&a, &b},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (123, 456)",
+		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 	testInsert(t,
 		Insert("hoge", []string{"a", "b"}, [][]*int{
 			{nil, nil},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (NULL, NULL)",
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
 	)
 }
 
@@ -103,7 +103,7 @@ func TestInsertWithInt64Slice(t *testing.T) {
 		Insert("hoge", []string{"a", "b"}, [][]int64{
 			{123, 456},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (123, 456)",
+		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 }
 
@@ -114,13 +114,13 @@ func TsetInsertWithInt64PtrSlice(t *testing.T) {
 		Insert("hoge", []string{"a", "b"}, [][]*int64{
 			{&a, &b},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (123, 456)",
+		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 	testInsert(t,
 		Insert("hoge", []string{"a", "b"}, [][]*int64{
 			{nil, nil},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (NULL, NULLtes)",
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULLtes)`,
 	)
 }
 
@@ -132,12 +132,12 @@ func TestInsertWithNullInt64Slice(t *testing.T) {
 		Insert("hoge", []string{"a", "b"}, [][]spanner.NullInt64{
 			{a, b},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (123, 456)",
+		`INSERT INTO hoge (a, b) VALUES (123, 456)`,
 	)
 	testInsert(t,
 		Insert("hoge", []string{"a", "b"}, [][]spanner.NullInt64{
 			{null, null},
 		}),
-		"INSERT INTO hoge (a, b) VALUES (NULL, NULL)",
+		`INSERT INTO hoge (a, b) VALUES (NULL, NULL)`,
 	)
 }

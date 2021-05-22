@@ -60,7 +60,6 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 
 // TODO:
 // []string, []*string, []NullString - STRING ARRAY
-// []byte - BYTES
 // [][]byte - BYTES ARRAY
 // []int, []int64, []*int64, []NullInt64 - INT64 ARRAY
 // bool, *bool, NullBool - BOOL

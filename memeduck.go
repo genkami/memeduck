@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"cloud.google.com/go/spanner"
 	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/pkg/errors"
 )
@@ -57,6 +58,23 @@ func (is *InsertStmt) toAST() (*ast.Insert, error) {
 	}, nil
 }
 
+// TODO:
+// string, *string, NullString - STRING
+// []string, []*string, []NullString - STRING ARRAY
+// []byte - BYTES
+// [][]byte - BYTES ARRAY
+// int, int64, *int64, NullInt64 - INT64
+// []int, []int64, []*int64, []NullInt64 - INT64 ARRAY
+// bool, *bool, NullBool - BOOL
+// []bool, []*bool, []NullBool - BOOL ARRAY
+// float64, *float64, NullFloat64 - FLOAT64
+// []float64, []*float64, []NullFloat64 - FLOAT64 ARRAY
+// time.Time, *time.Time, NullTime - TIMESTAMP
+// []time.Time, []*time.Time, []NullTime - TIMESTAMP ARRAY
+// Date, *Date, NullDate - DATE
+// []Date, []*Date, []NullDate - DATE ARRAY
+// big.Rat, *big.Rat, NullNumeric - NUMERIC
+// []big.Rat, []*big.Rat, []NullNumeric - NUMERIC ARRAY
 func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 	row := &ast.ValuesRow{}
 	valV := reflect.ValueOf(val)
@@ -87,6 +105,11 @@ func toExpr(val interface{}) (ast.Expr, error) {
 			return nullLit(), nil
 		}
 		return intLit(*v), nil
+	case spanner.NullInt64:
+		if v.Valid {
+			return intLit(v.Int64), nil
+		}
+		return nullLit(), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}

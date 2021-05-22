@@ -75,6 +75,12 @@ func toExpr(val interface{}) (ast.Expr, error) {
 	switch v := val.(type) {
 	case int:
 		return toIntLit(int64(v)), nil
+	case *int:
+		return toIntLit(int64(*v)), nil
+	case int64:
+		return toIntLit(v), nil
+	case *int64:
+		return toIntLit(*v), nil
 	default:
 		return nil, errors.Errorf("can't convert %T into SQL expr", val)
 	}

@@ -7,6 +7,11 @@ import (
 	"github.com/genkami/memeduck/internal"
 )
 
+// WhereCond is a conditional expression that appears in WHERE clauses.
+type WhereCond interface {
+	ToASTWhere() (*ast.Where, error)
+}
+
 // ExprCond is a boolean expression to filter records.
 type ExprCond struct {
 	expr ast.Expr

@@ -10,12 +10,68 @@ import (
 	"github.com/genkami/memeduck/internal"
 )
 
-// WhereCond is a conditional expression that appears in WHERE clauses.
-type WhereCond interface {
-	ToASTWhere() (*ast.Where, error)
+// SelectStmt builds SELECT statements.
+type SelectStmt struct {
+	table string
+	cols  []string
+	conds []WhereCond
 }
 
-// DeleteStmt build DELETE statements.
+// Select creates a new SelectStmt with given table name and column names.
+func Select(table string, cols []string) *SelectStmt {
+	return &SelectStmt{
+		table: table,
+		cols:  cols,
+	}
+}
+
+// Where appends given codintional expressions to the SELECT statement.
+func (s *SelectStmt) Where(conds ...WhereCond) *SelectStmt {
+	return &SelectStmt{
+		table: s.table,
+		cols:  s.cols,
+		conds: append(s.conds, conds...),
+	}
+}
+
+func (s *SelectStmt) SQL() (string, error) {
+	stmt, err := s.toAST()
+	if err != nil {
+		return "", err
+	}
+	return stmt.SQL(), nil
+}
+
+func (s *SelectStmt) toAST() (*ast.Select, error) {
+	var err error
+	var where *ast.Where = nil
+	if len(s.conds) > 0 {
+		where, err = And(s.conds...).ToASTWhere()
+		if err != nil {
+			return nil, err
+		}
+	}
+	items := make([]ast.SelectItem, 0, len(s.cols))
+	if len(s.cols) <= 0 {
+		return nil, errors.New("no columns specified")
+	}
+	for _, col := range s.cols {
+		items = append(items, &ast.ExprSelectItem{
+			Expr: &ast.Ident{Name: col},
+		})
+	}
+	return &ast.Select{
+		From: &ast.From{
+			Source: &ast.TableName{
+				Table: &ast.Ident{Name: s.table},
+			},
+		},
+		Results: items,
+		Where:   where,
+	}, nil
+}
+
+// DeleteStmt builds DELETE statements.
 type DeleteStmt struct {
 	table string
 	conds []WhereCond

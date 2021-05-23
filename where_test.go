@@ -55,6 +55,8 @@ func TestOp(t *testing.T) {
 	testWhere(t, memeduck.Op(4.56, memeduck.GT, 1.23), `4.56e+00 > 1.23e+00`)
 	testWhere(t, memeduck.Op(1, memeduck.LE, 2), `1 <= 2`)
 	testWhere(t, memeduck.Op(2, memeduck.GE, 1), `2 >= 1`)
+	testWhere(t, memeduck.Op("hoge", memeduck.LIKE, "ho%"), `"hoge" LIKE "ho%"`)
+	testWhere(t, memeduck.Op("hoge", memeduck.NOT_LIKE, "ho%"), `"hoge" NOT LIKE "ho%"`)
 
 	testWhere(t, memeduck.Eq(1, 1), `1 = 1`)
 	testWhere(t, memeduck.Ne("hoge", "fuga"), `"hoge" != "fuga"`)
@@ -62,6 +64,8 @@ func TestOp(t *testing.T) {
 	testWhere(t, memeduck.Gt(4.56, 1.23), `4.56e+00 > 1.23e+00`)
 	testWhere(t, memeduck.Le(1, 2), `1 <= 2`)
 	testWhere(t, memeduck.Ge(2, 1), `2 >= 1`)
+	testWhere(t, memeduck.Like("hoge", "ho%"), `"hoge" LIKE "ho%"`)
+	testWhere(t, memeduck.NotLike("hoge", "ho%"), `"hoge" NOT LIKE "ho%"`)
 }
 
 func TestAnd(t *testing.T) {

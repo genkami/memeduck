@@ -38,12 +38,14 @@ type OpCond struct {
 type BinaryOp ast.BinaryOp
 
 const (
-	EQ BinaryOp = BinaryOp(ast.OpEqual)
-	NE BinaryOp = BinaryOp(ast.OpNotEqual)
-	LT BinaryOp = BinaryOp(ast.OpLess)
-	GT BinaryOp = BinaryOp(ast.OpGreater)
-	LE BinaryOp = BinaryOp(ast.OpLessEqual)
-	GE BinaryOp = BinaryOp(ast.OpGreaterEqual)
+	EQ       BinaryOp = BinaryOp(ast.OpEqual)
+	NE       BinaryOp = BinaryOp(ast.OpNotEqual)
+	LT       BinaryOp = BinaryOp(ast.OpLess)
+	GT       BinaryOp = BinaryOp(ast.OpGreater)
+	LE       BinaryOp = BinaryOp(ast.OpLessEqual)
+	GE       BinaryOp = BinaryOp(ast.OpGreaterEqual)
+	LIKE     BinaryOp = BinaryOp(ast.OpLike)
+	NOT_LIKE BinaryOp = BinaryOp(ast.OpNotLike)
 )
 
 func (c *OpCond) ToASTWhere() (*ast.Where, error) {
@@ -101,6 +103,16 @@ func Le(lhs, rhs interface{}) *OpCond {
 // Ge(x, y) is a shorthand for Op(x, GE, y)
 func Ge(lhs, rhs interface{}) *OpCond {
 	return Op(lhs, GE, rhs)
+}
+
+// Like(x, y) is a shorthand for Op(x, LIKE, y)
+func Like(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, LIKE, rhs)
+}
+
+// NotLike(x, y) is a shorthand for Op(x, NOT_LIKE, y)
+func NotLike(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, NOT_LIKE, rhs)
 }
 
 // IdentExpr is an identifier.

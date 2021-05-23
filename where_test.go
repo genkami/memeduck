@@ -12,50 +12,66 @@ type whereCond interface {
 	ToASTWhere() (*ast.Where, error)
 }
 
-func test(t *testing.T, cond whereCond, expected string) {
+func testWhere(t *testing.T, cond whereCond, expected string) {
 	w, err := cond.ToASTWhere()
 	assert.Nil(t, err, expected)
 	assert.Equal(t, expected, w.Expr.SQL())
 }
 
+type astExpr interface {
+	ToASTExpr() ast.Expr
+}
+
+func testExpr(t *testing.T, expr astExpr, expected string) {
+	e := expr.ToASTExpr()
+	assert.Equal(t, expected, e.SQL())
+}
+
 func TestBool(t *testing.T) {
-	test(t, memeduck.Bool(true), `TRUE`)
-	test(t, memeduck.Bool(false), `FALSE`)
+	testWhere(t, memeduck.Bool(true), `TRUE`)
+	testWhere(t, memeduck.Bool(false), `FALSE`)
+}
+
+func TestIdent(t *testing.T) {
+	testExpr(t, memeduck.Ident("a"), `a`)
+	testExpr(t, memeduck.Ident("abc"), `abc`)
+	testExpr(t, memeduck.Ident("TRUE"), "`TRUE`")
+	// TODO: reject invalid name (e.g. empty)
 }
 
 func TestOp(t *testing.T) {
-	test(t, memeduck.Op(1, memeduck.EQ, 1), `1 = 1`)
-	test(t, memeduck.Op("hoge", memeduck.NE, "fuga"), `"hoge" != "fuga"`)
-	test(t, memeduck.Op(1.23, memeduck.LT, 4.56), `1.23e+00 < 4.56e+00`)
-	test(t, memeduck.Op(4.56, memeduck.GT, 1.23), `4.56e+00 > 1.23e+00`)
-	test(t, memeduck.Op(1, memeduck.LE, 2), `1 <= 2`)
-	test(t, memeduck.Op(2, memeduck.GE, 1), `2 >= 1`)
+	testWhere(t, memeduck.Op(1, memeduck.EQ, 1), `1 = 1`)
+	testWhere(t, memeduck.Op("hoge", memeduck.NE, "fuga"), `"hoge" != "fuga"`)
+	testWhere(t, memeduck.Op(1.23, memeduck.LT, 4.56), `1.23e+00 < 4.56e+00`)
+	testWhere(t, memeduck.Op(4.56, memeduck.GT, 1.23), `4.56e+00 > 1.23e+00`)
+	testWhere(t, memeduck.Op(1, memeduck.LE, 2), `1 <= 2`)
+	testWhere(t, memeduck.Op(2, memeduck.GE, 1), `2 >= 1`)
 
-	test(t, memeduck.Eq(1, 1), `1 = 1`)
-	test(t, memeduck.Ne("hoge", "fuga"), `"hoge" != "fuga"`)
-	test(t, memeduck.Lt(1.23, 4.56), `1.23e+00 < 4.56e+00`)
-	test(t, memeduck.Gt(4.56, 1.23), `4.56e+00 > 1.23e+00`)
-	test(t, memeduck.Le(1, 2), `1 <= 2`)
-	test(t, memeduck.Ge(2, 1), `2 >= 1`)
+	testWhere(t, memeduck.Eq(1, 1), `1 = 1`)
+	testWhere(t, memeduck.Ne("hoge", "fuga"), `"hoge" != "fuga"`)
+	testWhere(t, memeduck.Lt(1.23, 4.56), `1.23e+00 < 4.56e+00`)
+	testWhere(t, memeduck.Gt(4.56, 1.23), `4.56e+00 > 1.23e+00`)
+	testWhere(t, memeduck.Le(1, 2), `1 <= 2`)
+	testWhere(t, memeduck.Ge(2, 1), `2 >= 1`)
 }
 
 func TestAnd(t *testing.T) {
 	_, err := memeduck.And().ToASTWhere()
 	assert.Error(t, err, "empty AND")
-	test(t,
+	testWhere(t,
 		memeduck.And(
 			memeduck.Op(1, memeduck.EQ, 1),
 		),
 		`1 = 1`,
 	)
-	test(t,
+	testWhere(t,
 		memeduck.And(
 			memeduck.Op(1, memeduck.EQ, 1),
 			memeduck.Op("hoge", memeduck.EQ, "hoge"),
 		),
 		`1 = 1 AND "hoge" = "hoge"`,
 	)
-	test(t,
+	testWhere(t,
 		memeduck.And(
 			memeduck.Op(1, memeduck.EQ, 1),
 			memeduck.Op("hoge", memeduck.EQ, "hoge"),
@@ -68,20 +84,20 @@ func TestAnd(t *testing.T) {
 func TestOr(t *testing.T) {
 	_, err := memeduck.Or().ToASTWhere()
 	assert.Error(t, err, "empty Or")
-	test(t,
+	testWhere(t,
 		memeduck.Or(
 			memeduck.Op(1, memeduck.EQ, 1),
 		),
 		`1 = 1`,
 	)
-	test(t,
+	testWhere(t,
 		memeduck.Or(
 			memeduck.Op(1, memeduck.EQ, 1),
 			memeduck.Op("hoge", memeduck.EQ, "hoge"),
 		),
 		`1 = 1 OR "hoge" = "hoge"`,
 	)
-	test(t,
+	testWhere(t,
 		memeduck.Or(
 			memeduck.Op(1, memeduck.EQ, 1),
 			memeduck.Op("hoge", memeduck.EQ, "hoge"),
@@ -91,7 +107,7 @@ func TestOr(t *testing.T) {
 	)
 
 	// TODO: this shoud pass
-	// test(t,
+	// testWhere(t,
 	// 	memeduck.And(
 	// 		memeduck.Eq(1, 1),
 	// 		memeduck.Or(

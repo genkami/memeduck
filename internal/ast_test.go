@@ -141,7 +141,7 @@ func (*customExpr) ToASTExpr() ast.Expr {
 	return internal.StringLit("custom expr")
 }
 
-func TestASTWithSpannerExpr(t *testing.T) {
+func TestASTWithASTExpr(t *testing.T) {
 	testAST(t, &customExpr{}, internal.StringLit("custom expr"))
 }
 

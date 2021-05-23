@@ -170,7 +170,8 @@ func (s *InsertStmt) structToValuesRow(valV reflect.Value) (*ast.ValuesRow, erro
 		colFound := false
 		for i := 0; i < numField; i++ {
 			ft := valT.Field(i)
-			if ft.Name != colName {
+			fieldName, ok := columnNameOf(&ft)
+			if !ok || fieldName != colName {
 				continue
 			}
 			colFound = true
@@ -185,4 +186,14 @@ func (s *InsertStmt) structToValuesRow(valV reflect.Value) (*ast.ValuesRow, erro
 		}
 	}
 	return row, nil
+}
+
+func columnNameOf(field *reflect.StructField) (name string, ok bool) {
+	tag := field.Tag.Get("spanner")
+	if tag == "" {
+		return field.Name, true
+	} else if tag == "-" {
+		return "", false
+	}
+	return tag, true
 }

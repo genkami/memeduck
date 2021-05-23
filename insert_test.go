@@ -667,6 +667,33 @@ func TestInsertWithGoStruct(t *testing.T) {
 	)
 }
 
+type testInsertGoStructWithTags struct {
+	A string `spanner:"ColumnA"`
+	B string `spanner:"ColumnB"`
+	C string
+}
+
+func TestInsertWithGoStructWithTags(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"ColumnA", "ColumnB", "C"}).Values([]testInsertGoStructWithTags{
+			testInsertGoStructWithTags{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (ColumnA, ColumnB, C) VALUES ("AAA", "BBB", "CCC")`,
+	)
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"ColumnA", "C"}).Values([]testInsertGoStructWithTags{
+			testInsertGoStructWithTags{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (ColumnA, C) VALUES ("AAA", "CCC")`,
+	)
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"ColumnA", "ColumnB", "C"}).Values([]*testInsertGoStructWithTags{
+			&testInsertGoStructWithTags{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (ColumnA, ColumnB, C) VALUES ("AAA", "BBB", "CCC")`,
+	)
+}
+
 func TestInsertWithHeteroSlice(t *testing.T) {
 	testInsert(t,
 		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([][]interface{}{

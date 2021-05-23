@@ -3,6 +3,7 @@ package memeduck
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/MakeNowJust/memefish/pkg/ast"
 	"github.com/pkg/errors"
@@ -387,8 +388,7 @@ func (s *InsertStmt) structToValuesRow(valV reflect.Value) (*ast.ValuesRow, erro
 		colFound := false
 		for i := 0; i < numField; i++ {
 			ft := valT.Field(i)
-			fieldName, ok := columnNameOf(&ft)
-			if !ok || fieldName != colName {
+			if !columnNameMatches(&ft, colName) {
 				continue
 			}
 			colFound = true
@@ -405,12 +405,12 @@ func (s *InsertStmt) structToValuesRow(valV reflect.Value) (*ast.ValuesRow, erro
 	return row, nil
 }
 
-func columnNameOf(field *reflect.StructField) (name string, ok bool) {
+func columnNameMatches(field *reflect.StructField, colName string) bool {
 	tag := field.Tag.Get("spanner")
 	if tag == "" {
-		return field.Name, true
+		return strings.EqualFold(field.Name, colName)
 	} else if tag == "-" {
-		return "", false
+		return false
 	}
-	return tag, true
+	return tag == colName
 }

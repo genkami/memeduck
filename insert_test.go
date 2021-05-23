@@ -666,6 +666,12 @@ func TestInsertWithGoStruct(t *testing.T) {
 		`INSERT INTO hoge (A, B, C) VALUES ("AAA", "BBB", "CCC")`,
 	)
 	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b", "c"}).Values([]testInsertGoStruct{
+			testInsertGoStruct{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (a, b, c) VALUES ("AAA", "BBB", "CCC")`,
+	)
+	testInsert(t,
 		memeduck.Insert("hoge", []string{"A", "B"}).Values([]testInsertGoStruct{
 			testInsertGoStruct{A: "AAA", B: "BBB", C: "CCC"},
 		}),

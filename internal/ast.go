@@ -123,7 +123,6 @@ func ToExpr(val interface{}) (ast.Expr, error) {
 			}
 			return ArrayLit(exprs), nil
 		} else {
-			// TODO: support Go structs
 			return nil, errors.Errorf("can't convert %T into SQL expr", val)
 
 		}

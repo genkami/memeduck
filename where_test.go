@@ -15,7 +15,7 @@ type whereCond interface {
 func test(t *testing.T, cond whereCond, expected string) {
 	w, err := cond.ToASTWhere()
 	assert.Nil(t, err, expected)
-	assert.Equal(t, w.Expr.SQL(), expected)
+	assert.Equal(t, expected, w.Expr.SQL())
 }
 
 func TestBool(t *testing.T) {
@@ -89,4 +89,16 @@ func TestOr(t *testing.T) {
 		),
 		`1 = 1 OR "hoge" = "hoge" OR TRUE = TRUE`,
 	)
+
+	// TODO: this shoud pass
+	// test(t,
+	// 	memeduck.And(
+	// 		memeduck.Eq(1, 1),
+	// 		memeduck.Or(
+	// 			memeduck.Eq(2, 2),
+	// 			memeduck.Eq(3, 3),
+	// 		),
+	// 	),
+	// 	`1 = 1 AND (2 = 2 OR 3 = 3)`,
+	// )
 }

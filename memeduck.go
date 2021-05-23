@@ -146,6 +146,87 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 	}, nil
 }
 
+// UpdateStmt builds UPDATE statements.
+type UpdateStmt struct {
+	table string
+	items []*updateItem
+	conds []WhereCond
+}
+
+type updateItem struct {
+	ident *IdentExpr
+	value interface{}
+}
+
+func (i *updateItem) toASTUpdateItem() (*ast.UpdateItem, error) {
+	// NOTE: can't use ast.Path here for any reason.
+	path := []*ast.Ident{{Name: i.ident.name}}
+	expr, err := internal.ToExpr(i.value)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.UpdateItem{
+		Path: path,
+		Expr: expr,
+	}, nil
+}
+
+// Update creates a new UpdateStmt with given table name.
+func Update(table string) *UpdateStmt {
+	return &UpdateStmt{
+		table: table,
+	}
+}
+
+// Set adds a assignment clause to the UPDATE statement.
+func (s *UpdateStmt) Set(id *IdentExpr, value interface{}) *UpdateStmt {
+	var t = *s
+	t.items = append(t.items, &updateItem{
+		ident: id,
+		value: value,
+	})
+	return &t
+}
+
+// Where adds a WHERE clause to the UPDATE statement.
+func (s *UpdateStmt) Where(conds ...WhereCond) *UpdateStmt {
+	var t = *s
+	t.conds = append(t.conds, conds...)
+	return &t
+}
+
+func (s *UpdateStmt) SQL() (string, error) {
+	stmt, err := s.toAST()
+	if err != nil {
+		return "", err
+	}
+	return stmt.SQL(), nil
+}
+
+func (s *UpdateStmt) toAST() (*ast.Update, error) {
+	if len(s.items) <= 0 {
+		return nil, errors.New("no SET clause is specified")
+	}
+	items := make([]*ast.UpdateItem, 0, len(s.items))
+	for _, item := range s.items {
+		astItem, err := item.toASTUpdateItem()
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, astItem)
+	}
+
+	cond, err := And(s.conds...).ToASTWhere()
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Update{
+		TableName: &ast.Ident{Name: s.table},
+		Updates:   items,
+		Where:     cond,
+	}, nil
+}
+
 // DeleteStmt builds DELETE statements.
 type DeleteStmt struct {
 	table string
@@ -161,10 +242,9 @@ func Delete(table string) *DeleteStmt {
 
 // Where appends given conditional expressions to the DELETE statement.
 func (s *DeleteStmt) Where(conds ...WhereCond) *DeleteStmt {
-	return &DeleteStmt{
-		table: s.table,
-		conds: append(s.conds, conds...),
-	}
+	var t = *s
+	t.conds = append(t.conds, conds...)
+	return &t
 }
 
 func (s *DeleteStmt) SQL() (string, error) {

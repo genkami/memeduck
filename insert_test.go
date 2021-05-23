@@ -642,6 +642,31 @@ func TestInsertWithCustomExpr(t *testing.T) {
 	)
 }
 
+type testInsertGoStruct struct {
+	A, B, C string
+}
+
+func TestInsertWithGoStruct(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"A", "B", "C"}).Values([]testInsertGoStruct{
+			testInsertGoStruct{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (A, B, C) VALUES ("AAA", "BBB", "CCC")`,
+	)
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"A", "B"}).Values([]testInsertGoStruct{
+			testInsertGoStruct{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (A, B) VALUES ("AAA", "BBB")`,
+	)
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"A", "B", "C"}).Values([]*testInsertGoStruct{
+			&testInsertGoStruct{A: "AAA", B: "BBB", C: "CCC"},
+		}),
+		`INSERT INTO hoge (A, B, C) VALUES ("AAA", "BBB", "CCC")`,
+	)
+}
+
 func TestInsertWithHeteroSlice(t *testing.T) {
 	testInsert(t,
 		memeduck.Insert("hoge", []string{"a", "b", "c", "d"}).Values([][]interface{}{

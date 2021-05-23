@@ -96,22 +96,17 @@ func (s *InsertStmt) toAST() (*ast.Insert, error) {
 	if s.values == nil {
 		return nil, errors.New("neither VALUES nor SELECT specified")
 	}
-	input := &ast.ValuesInput{}
 	// TODO: support SELECT
+	var input ast.InsertInput
+	var err error
 	rowsV := reflect.ValueOf(s.values)
-	if rowsV.Type().Kind() != reflect.Slice {
-		return nil, errors.New("values it not a slice")
-	}
-	if rowsV.Len() <= 0 {
-		return nil, errors.New("empty values")
-	}
-	for i := 0; i < rowsV.Len(); i++ {
-		rowI := rowsV.Index(i).Interface()
-		row, err := toValuesRow(rowI)
+	if rowsV.Type().Kind() == reflect.Slice {
+		input, err = s.sliceToInsertInput(rowsV)
 		if err != nil {
-			return nil, errors.WithMessagef(err, "can't convert %T into SQL row", rowI)
+			return nil, err
 		}
-		input.Rows = append(input.Rows, row)
+	} else {
+		return nil, errors.Errorf("can't create InsertInput")
 	}
 	return &ast.Insert{
 		TableName: &ast.Ident{Name: s.table},
@@ -120,16 +115,74 @@ func (s *InsertStmt) toAST() (*ast.Insert, error) {
 	}, nil
 }
 
-func toValuesRow(val interface{}) (*ast.ValuesRow, error) {
-	row := &ast.ValuesRow{}
+func (s *InsertStmt) sliceToInsertInput(rowsV reflect.Value) (ast.InsertInput, error) {
+	input := &ast.ValuesInput{}
+	if rowsV.Len() <= 0 {
+		return nil, errors.New("empty values")
+	}
+	for i := 0; i < rowsV.Len(); i++ {
+		rowI := rowsV.Index(i).Interface()
+		row, err := s.toValuesRow(rowI)
+		if err != nil {
+			return nil, errors.WithMessagef(err, "can't convert %T into SQL row", rowI)
+		}
+		input.Rows = append(input.Rows, row)
+	}
+	return input, nil
+}
+
+func (s *InsertStmt) toValuesRow(val interface{}) (*ast.ValuesRow, error) {
 	valV := reflect.ValueOf(val)
-	// TODO: check types
+	switch valV.Type().Kind() {
+	case reflect.Slice:
+		return s.sliceToValuesRow(valV)
+	case reflect.Struct:
+		return s.structToValuesRow(valV)
+	case reflect.Ptr:
+		if valV.Type().Elem().Kind() == reflect.Struct {
+			return s.structToValuesRow(valV.Elem())
+		}
+		return nil, errors.Errorf("%s is neither struct nor slice", valV.Type().String())
+	default:
+		return nil, errors.Errorf("%s is neither struct nor slice", valV.Type().String())
+	}
+}
+
+// The type of valV is guaranteed to be slice here.
+func (s *InsertStmt) sliceToValuesRow(valV reflect.Value) (*ast.ValuesRow, error) {
+	row := &ast.ValuesRow{}
 	for i := 0; i < valV.Len(); i++ {
 		expr, err := internal.ToExpr(valV.Index(i).Interface())
 		if err != nil {
 			return nil, err
 		}
 		row.Exprs = append(row.Exprs, &ast.DefaultExpr{Expr: expr})
+	}
+	return row, nil
+}
+
+// The type of valV is guaranteed to be struct here.
+func (s *InsertStmt) structToValuesRow(valV reflect.Value) (*ast.ValuesRow, error) {
+	row := &ast.ValuesRow{}
+	valT := valV.Type()
+	numField := valT.NumField()
+	for _, colName := range s.cols {
+		colFound := false
+		for i := 0; i < numField; i++ {
+			ft := valT.Field(i)
+			if ft.Name != colName {
+				continue
+			}
+			colFound = true
+			expr, err := internal.ToExpr(valV.Field(i).Interface())
+			if err != nil {
+				return nil, err
+			}
+			row.Exprs = append(row.Exprs, &ast.DefaultExpr{Expr: expr})
+		}
+		if !colFound {
+			return nil, errors.Errorf("type %s does not have column %s", valT.String(), colName)
+		}
 	}
 	return row, nil
 }

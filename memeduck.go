@@ -1,4 +1,3 @@
-// Package memeduck provides tools to build Spanner SQL queries.
 package memeduck
 
 import (

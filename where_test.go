@@ -34,10 +34,13 @@ func TestBool(t *testing.T) {
 }
 
 func TestIdent(t *testing.T) {
+	_, err := memeduck.Ident().ToASTExpr()
+	assert.Error(t, err, "empty ident")
 	testExpr(t, memeduck.Ident("a"), `a`)
 	testExpr(t, memeduck.Ident("abc"), `abc`)
 	testExpr(t, memeduck.Ident("TRUE"), "`TRUE`")
-	// TODO: reject invalid name (e.g. empty)
+	testExpr(t, memeduck.Ident("a", "b"), `a.b`)
+	testExpr(t, memeduck.Ident("TRUE", "FALSE"), "`TRUE`.`FALSE`")
 }
 
 func TestOp(t *testing.T) {

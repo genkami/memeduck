@@ -159,8 +159,14 @@ type updateItem struct {
 }
 
 func (i *updateItem) toASTUpdateItem() (*ast.UpdateItem, error) {
+	if len(i.ident.names) <= 0 {
+		return nil, errors.New("empty identifier")
+	}
 	// NOTE: can't use ast.Path here for any reason.
-	path := []*ast.Ident{{Name: i.ident.name}}
+	path := make([]*ast.Ident, 0, len(i.ident.names))
+	for _, name := range i.ident.names {
+		path = append(path, &ast.Ident{Name: name})
+	}
 	expr, err := internal.ToExpr(i.value)
 	if err != nil {
 		return nil, err

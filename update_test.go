@@ -50,6 +50,23 @@ func TestUpdate(t *testing.T) {
 			),
 		`UPDATE hoge SET a = b, b = a WHERE c = "bar"`,
 	)
+	testUpdate(t,
+		memeduck.Update("hoge").
+			Set(memeduck.Ident("a", "b"), 1).
+			Where(
+				memeduck.Eq(memeduck.Ident("c"), "bar"),
+			),
+		`UPDATE hoge SET a.b = 1 WHERE c = "bar"`,
+	)
+}
+
+func TestUpdateWithEmptyIdent(t *testing.T) {
+	_, err := memeduck.Update("hoge").
+		Set(memeduck.Ident(), 1).
+		Where(
+			memeduck.Bool(true),
+		).SQL()
+	assert.Error(t, err, "empty ident")
 }
 
 func TestUpdateWithNoSet(t *testing.T) {

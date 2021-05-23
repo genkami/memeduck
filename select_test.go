@@ -52,6 +52,13 @@ func TestSelect(t *testing.T) {
 		),
 		`SELECT a, b FROM hoge WHERE a = 1 AND b = "2" AND c != B"\x03"`,
 	)
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).Where(
+			memeduck.Eq(memeduck.Ident("a", "b"), 1),
+			memeduck.Eq(memeduck.Ident("a", "c"), "2"),
+		),
+		`SELECT a, b FROM hoge WHERE a.b = 1 AND a.c = "2"`,
+	)
 }
 
 func TestSelectWithOrderBy(t *testing.T) {

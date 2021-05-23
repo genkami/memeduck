@@ -105,16 +105,26 @@ func Ge(lhs, rhs interface{}) *OpCond {
 
 // IdentExpr is an identifier.
 type IdentExpr struct {
-	name string
+	names []string
 }
 
 // Ident creates a new IdentExpr.
-func Ident(name string) *IdentExpr {
-	return &IdentExpr{name: name}
+// Path expression can be created by passing more than one elements.
+func Ident(names ...string) *IdentExpr {
+	return &IdentExpr{names: names}
 }
 
-func (ie *IdentExpr) ToASTExpr() (ast.Expr, error) {
-	return &ast.Ident{Name: ie.name}, nil
+func (e *IdentExpr) ToASTExpr() (ast.Expr, error) {
+	if len(e.names) <= 0 {
+		return nil, errors.New("empty identifier")
+	}
+	path := &ast.Path{}
+	for _, name := range e.names {
+		path.Idents = append(path.Idents, &ast.Ident{
+			Name: name,
+		})
+	}
+	return path, nil
 }
 
 // LogicalOpCond represents AND/OR operator.

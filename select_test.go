@@ -54,6 +54,22 @@ func TestSelect(t *testing.T) {
 	)
 }
 
+func TestSelectWithOrderBy(t *testing.T) {
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).Where(
+			memeduck.Eq(memeduck.Ident("a"), 123),
+		).OrderBy("a", memeduck.ASC),
+		`SELECT a, b FROM hoge WHERE a = 123 ORDER BY a ASC`,
+	)
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).Where(
+			memeduck.Eq(memeduck.Ident("a"), 123),
+		).OrderBy("a", memeduck.ASC).
+			OrderBy("b", memeduck.DESC),
+		`SELECT a, b FROM hoge WHERE a = 123 ORDER BY a ASC, b DESC`,
+	)
+}
+
 func TestSelectWithoutColumn(t *testing.T) {
 	_, err := memeduck.Select("hoge", []string{}).SQL()
 	assert.Error(t, err)

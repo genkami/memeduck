@@ -15,7 +15,28 @@ type SelectStmt struct {
 	table string
 	cols  []string
 	conds []WhereCond
+	ords  []*ordering
 }
+
+type ordering struct {
+	col string
+	dir Direction
+}
+
+func (o *ordering) toASTOrderByItem() *ast.OrderByItem {
+	return &ast.OrderByItem{
+		Expr: &ast.Ident{Name: o.col},
+		Dir:  ast.Direction(o.dir),
+	}
+}
+
+// Direction is an ordering direction used by ORDER BY clause.
+type Direction ast.Direction
+
+const (
+	ASC  Direction = Direction(ast.DirectionAsc)
+	DESC Direction = Direction(ast.DirectionDesc)
+)
 
 // Select creates a new SelectStmt with given table name and column names.
 func Select(table string, cols []string) *SelectStmt {
@@ -27,11 +48,19 @@ func Select(table string, cols []string) *SelectStmt {
 
 // Where appends given codintional expressions to the SELECT statement.
 func (s *SelectStmt) Where(conds ...WhereCond) *SelectStmt {
-	return &SelectStmt{
-		table: s.table,
-		cols:  s.cols,
-		conds: append(s.conds, conds...),
-	}
+	var t = *s
+	t.conds = append(t.conds, conds...)
+	return &t
+}
+
+// OrderBy appends a column to its ORDER BY clause.
+func (s *SelectStmt) OrderBy(col string, dir Direction) *SelectStmt {
+	var t = *s
+	t.ords = append(t.ords, &ordering{
+		col: col,
+		dir: dir,
+	})
+	return &t
 }
 
 func (s *SelectStmt) SQL() (string, error) {
@@ -51,6 +80,7 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 			return nil, err
 		}
 	}
+
 	items := make([]ast.SelectItem, 0, len(s.cols))
 	if len(s.cols) <= 0 {
 		return nil, errors.New("no columns specified")
@@ -60,6 +90,18 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 			Expr: &ast.Ident{Name: col},
 		})
 	}
+
+	var orderBy *ast.OrderBy = nil
+	if len(s.ords) > 0 {
+		items := make([]*ast.OrderByItem, 0, len(s.ords))
+		for _, o := range s.ords {
+			items = append(items, o.toASTOrderByItem())
+		}
+		orderBy = &ast.OrderBy{
+			Items: items,
+		}
+	}
+
 	return &ast.Select{
 		From: &ast.From{
 			Source: &ast.TableName{
@@ -68,6 +110,7 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 		},
 		Results: items,
 		Where:   where,
+		OrderBy: orderBy,
 	}, nil
 }
 

@@ -12,7 +12,7 @@ type ExprCond struct {
 	expr ast.Expr
 }
 
-func (c *ExprCond) ToAstWhere() (*ast.Where, error) {
+func (c *ExprCond) ToASTWhere() (*ast.Where, error) {
 	return &ast.Where{
 		Expr: c.expr,
 	}, nil
@@ -41,7 +41,7 @@ const (
 	GE BinaryOp = BinaryOp(ast.OpGreaterEqual)
 )
 
-func (c *OpCond) ToAstWhere() (*ast.Where, error) {
+func (c *OpCond) ToASTWhere() (*ast.Where, error) {
 	lhs, err := internal.ToExpr(c.lhs)
 	if err != nil {
 		return nil, err
@@ -111,17 +111,17 @@ func Or(conds ...WhereCond) *LogicalOpCond {
 	}
 }
 
-func (c *LogicalOpCond) ToAstWhere() (*ast.Where, error) {
+func (c *LogicalOpCond) ToASTWhere() (*ast.Where, error) {
 	if len(c.conds) <= 0 {
 		return nil, errors.New("no conditions")
 	}
-	where, err := c.conds[0].ToAstWhere()
+	where, err := c.conds[0].ToASTWhere()
 	if err != nil {
 		return nil, err
 	}
 	acc := where
 	for _, cond := range c.conds[1:] {
-		where, err = cond.ToAstWhere()
+		where, err = cond.ToASTWhere()
 		if err != nil {
 			return nil, err
 		}

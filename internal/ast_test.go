@@ -13,126 +13,126 @@ import (
 	"github.com/genkami/memeduck/internal"
 )
 
-func testAst(t *testing.T, val interface{}, expected ast.Expr) {
+func testAST(t *testing.T, val interface{}, expected ast.Expr) {
 	actual, err := internal.ToExpr(val)
 	assert.Nil(t, err, "can't convert %#v into Expr", val)
 	assert.Equal(t, expected, actual)
 }
 
-func TestAstWithNil(t *testing.T) {
-	testAst(t, nil, internal.NullLit())
+func TestASTWithNil(t *testing.T) {
+	testAST(t, nil, internal.NullLit())
 }
 
-func TestAstWithString(t *testing.T) {
-	testAst(t, "hoge", internal.StringLit("hoge"))
+func TestASTWithString(t *testing.T) {
+	testAST(t, "hoge", internal.StringLit("hoge"))
 }
 
-func TestAstWithStringPtr(t *testing.T) {
+func TestASTWithStringPtr(t *testing.T) {
 	var v = "hoge"
-	testAst(t, &v, internal.StringLit("hoge"))
-	testAst(t, (*string)(nil), internal.NullLit())
+	testAST(t, &v, internal.StringLit("hoge"))
+	testAST(t, (*string)(nil), internal.NullLit())
 }
 
-func TestAstWithNullString(t *testing.T) {
-	testAst(t, spanner.NullString{StringVal: "hoge", Valid: true}, internal.StringLit("hoge"))
-	testAst(t, spanner.NullString{}, internal.NullLit())
+func TestASTWithNullString(t *testing.T) {
+	testAST(t, spanner.NullString{StringVal: "hoge", Valid: true}, internal.StringLit("hoge"))
+	testAST(t, spanner.NullString{}, internal.NullLit())
 }
 
-func TestAstWithBytes(t *testing.T) {
-	testAst(t, []byte{0, 1, 2}, internal.BytesLit([]byte{0, 1, 2}))
+func TestASTWithBytes(t *testing.T) {
+	testAST(t, []byte{0, 1, 2}, internal.BytesLit([]byte{0, 1, 2}))
 }
 
-func TestAstWithInt(t *testing.T) {
-	testAst(t, int(123), internal.IntLit(123))
+func TestASTWithInt(t *testing.T) {
+	testAST(t, int(123), internal.IntLit(123))
 }
 
-func TestAstWithIntPtr(t *testing.T) {
+func TestASTWithIntPtr(t *testing.T) {
 	var v int = 123
-	testAst(t, &v, internal.IntLit(123))
-	testAst(t, (*int)(nil), internal.NullLit())
+	testAST(t, &v, internal.IntLit(123))
+	testAST(t, (*int)(nil), internal.NullLit())
 }
 
-func TestAstWithInt64(t *testing.T) {
-	testAst(t, int64(123), internal.IntLit(123))
+func TestASTWithInt64(t *testing.T) {
+	testAST(t, int64(123), internal.IntLit(123))
 }
 
-func TestAstWithInt64Ptr(t *testing.T) {
+func TestASTWithInt64Ptr(t *testing.T) {
 	var v int64 = 123
-	testAst(t, &v, internal.IntLit(123))
-	testAst(t, (*int64)(nil), internal.NullLit())
+	testAST(t, &v, internal.IntLit(123))
+	testAST(t, (*int64)(nil), internal.NullLit())
 }
 
-func TestAstWithNullInt64(t *testing.T) {
-	testAst(t, spanner.NullInt64{Int64: 123, Valid: true}, internal.IntLit(123))
-	testAst(t, spanner.NullInt64{}, internal.NullLit())
+func TestASTWithNullInt64(t *testing.T) {
+	testAST(t, spanner.NullInt64{Int64: 123, Valid: true}, internal.IntLit(123))
+	testAST(t, spanner.NullInt64{}, internal.NullLit())
 }
 
-func TestAstWithBool(t *testing.T) {
-	testAst(t, true, internal.BoolLit(true))
-	testAst(t, false, internal.BoolLit(false))
+func TestASTWithBool(t *testing.T) {
+	testAST(t, true, internal.BoolLit(true))
+	testAST(t, false, internal.BoolLit(false))
 }
 
-func TestAstWithBoolPtr(t *testing.T) {
+func TestASTWithBoolPtr(t *testing.T) {
 	var v bool = true
-	testAst(t, &v, internal.BoolLit(true))
-	testAst(t, (*bool)(nil), internal.NullLit())
+	testAST(t, &v, internal.BoolLit(true))
+	testAST(t, (*bool)(nil), internal.NullLit())
 }
 
-func TestAstWithNullBool(t *testing.T) {
-	testAst(t, spanner.NullBool{Bool: false, Valid: true}, internal.BoolLit(false))
-	testAst(t, spanner.NullBool{}, internal.NullLit())
+func TestASTWithNullBool(t *testing.T) {
+	testAST(t, spanner.NullBool{Bool: false, Valid: true}, internal.BoolLit(false))
+	testAST(t, spanner.NullBool{}, internal.NullLit())
 }
 
-func TestAstWithFloat64(t *testing.T) {
-	testAst(t, float64(3.14), internal.FloatLit(3.14))
+func TestASTWithFloat64(t *testing.T) {
+	testAST(t, float64(3.14), internal.FloatLit(3.14))
 }
 
-func TestAstWithFloat64Ptr(t *testing.T) {
+func TestASTWithFloat64Ptr(t *testing.T) {
 	var v float64 = 3.14
-	testAst(t, &v, internal.FloatLit(3.14))
-	testAst(t, (*float64)(nil), internal.NullLit())
+	testAST(t, &v, internal.FloatLit(3.14))
+	testAST(t, (*float64)(nil), internal.NullLit())
 }
 
-func TestAstWithNullFloat64(t *testing.T) {
-	testAst(t, spanner.NullFloat64{Float64: 1.23, Valid: true}, internal.FloatLit(1.23))
-	testAst(t, spanner.NullFloat64{}, internal.NullLit())
+func TestASTWithNullFloat64(t *testing.T) {
+	testAST(t, spanner.NullFloat64{Float64: 1.23, Valid: true}, internal.FloatLit(1.23))
+	testAST(t, spanner.NullFloat64{}, internal.NullLit())
 }
 
-func TestAstWithTime(t *testing.T) {
+func TestASTWithTime(t *testing.T) {
 	var v = time.Now()
-	testAst(t, v, internal.TimeLit(v))
+	testAST(t, v, internal.TimeLit(v))
 }
 
-func TestAstWithTimePtr(t *testing.T) {
+func TestASTWithTimePtr(t *testing.T) {
 	var v = time.Now()
-	testAst(t, &v, internal.TimeLit(v))
-	testAst(t, (*time.Time)(nil), internal.NullLit())
+	testAST(t, &v, internal.TimeLit(v))
+	testAST(t, (*time.Time)(nil), internal.NullLit())
 }
 
-func TestAstWithNullTime(t *testing.T) {
+func TestASTWithNullTime(t *testing.T) {
 	var v = time.Now()
-	testAst(t, spanner.NullTime{Time: v, Valid: true}, internal.TimeLit(v))
-	testAst(t, spanner.NullTime{}, internal.NullLit())
+	testAST(t, spanner.NullTime{Time: v, Valid: true}, internal.TimeLit(v))
+	testAST(t, spanner.NullTime{}, internal.NullLit())
 }
 
-func TestAstWithDate(t *testing.T) {
+func TestASTWithDate(t *testing.T) {
 	v, err := civil.ParseDate("2021-05-22")
 	assert.Nil(t, err)
-	testAst(t, v, internal.DateLit(v))
+	testAST(t, v, internal.DateLit(v))
 }
 
-func TestAstWithDatePtr(t *testing.T) {
+func TestASTWithDatePtr(t *testing.T) {
 	v, err := civil.ParseDate("2021-05-22")
 	assert.Nil(t, err)
-	testAst(t, &v, internal.DateLit(v))
-	testAst(t, (*civil.Date)(nil), internal.NullLit())
+	testAST(t, &v, internal.DateLit(v))
+	testAST(t, (*civil.Date)(nil), internal.NullLit())
 }
 
-func TestAstWithNullDate(t *testing.T) {
+func TestASTWithNullDate(t *testing.T) {
 	v, err := civil.ParseDate("2021-05-22")
 	assert.Nil(t, err)
-	testAst(t, spanner.NullDate{Date: v, Valid: true}, internal.DateLit(v))
-	testAst(t, spanner.NullDate{}, internal.NullLit())
+	testAST(t, spanner.NullDate{Date: v, Valid: true}, internal.DateLit(v))
+	testAST(t, spanner.NullDate{}, internal.NullLit())
 }
 
 type customExpr struct{}
@@ -141,20 +141,20 @@ func (*customExpr) ToASTExpr() ast.Expr {
 	return internal.StringLit("custom expr")
 }
 
-func TestAstWithSpannerExpr(t *testing.T) {
-	testAst(t, &customExpr{}, internal.StringLit("custom expr"))
+func TestASTWithSpannerExpr(t *testing.T) {
+	testAST(t, &customExpr{}, internal.StringLit("custom expr"))
 }
 
-func TestAstWithSlice(t *testing.T) {
-	testAst(t,
+func TestASTWithSlice(t *testing.T) {
+	testAST(t,
 		[]interface{}{nil, nil},
 		internal.ArrayLit([]ast.Expr{internal.NullLit(), internal.NullLit()}),
 	)
-	testAst(t,
+	testAST(t,
 		[]string{"hoge", "fuga"},
 		internal.ArrayLit([]ast.Expr{internal.StringLit("hoge"), internal.StringLit("fuga")}),
 	)
-	testAst(t,
+	testAST(t,
 		[]interface{}{123, "456"},
 		internal.ArrayLit([]ast.Expr{internal.IntLit(123), internal.StringLit("456")}),
 	)

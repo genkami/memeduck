@@ -12,7 +12,7 @@ import (
 
 // WhereCond is a conditional expression that appears in WHERE clauses.
 type WhereCond interface {
-	ToAstWhere() (*ast.Where, error)
+	ToASTWhere() (*ast.Where, error)
 }
 
 // DeleteStmt build DELETE statements.
@@ -48,7 +48,7 @@ func (s *DeleteStmt) toAST() (*ast.Delete, error) {
 	if len(s.conds) == 0 {
 		return nil, errors.New("no WHERE clause specified")
 	}
-	cond, err := s.conds[0].ToAstWhere()
+	cond, err := s.conds[0].ToASTWhere()
 	if err != nil {
 		return nil, err
 	}

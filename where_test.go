@@ -9,11 +9,11 @@ import (
 )
 
 type whereCond interface {
-	ToAstWhere() (*ast.Where, error)
+	ToASTWhere() (*ast.Where, error)
 }
 
 func test(t *testing.T, cond whereCond, expected string) {
-	w, err := cond.ToAstWhere()
+	w, err := cond.ToASTWhere()
 	assert.Nil(t, err, expected)
 	assert.Equal(t, w.Expr.SQL(), expected)
 }
@@ -33,7 +33,7 @@ func TestOp(t *testing.T) {
 }
 
 func TestAnd(t *testing.T) {
-	_, err := memeduck.And().ToAstWhere()
+	_, err := memeduck.And().ToASTWhere()
 	assert.Error(t, err, "empty AND")
 	test(t,
 		memeduck.And(
@@ -59,7 +59,7 @@ func TestAnd(t *testing.T) {
 }
 
 func TestOr(t *testing.T) {
-	_, err := memeduck.Or().ToAstWhere()
+	_, err := memeduck.Or().ToASTWhere()
 	assert.Error(t, err, "empty Or")
 	test(t,
 		memeduck.Or(

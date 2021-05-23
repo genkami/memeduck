@@ -2,6 +2,8 @@ package memeduck
 
 import (
 	"github.com/MakeNowJust/memefish/pkg/ast"
+	"github.com/pkg/errors"
+
 	"github.com/genkami/memeduck/internal"
 )
 
@@ -78,4 +80,58 @@ func Ident(name string) *IdentExpr {
 
 func (ie *IdentExpr) ToASTExpr() ast.Expr {
 	return &ast.Ident{Name: ie.name}
+}
+
+// LogicalOpCond represents AND/OR operator.
+type LogicalOpCond struct {
+	op    logicalOp
+	conds []WhereCond
+}
+
+type logicalOp ast.BinaryOp
+
+const (
+	logicalOpAnd logicalOp = logicalOp(ast.OpAnd)
+	logicalOpOr  logicalOp = logicalOp(ast.OpOr)
+)
+
+// And concatenates more than one WhereConds with AND operator.
+func And(conds ...WhereCond) *LogicalOpCond {
+	return &LogicalOpCond{
+		op:    logicalOpAnd,
+		conds: conds,
+	}
+}
+
+// Or concatenates more than one WhereConds with OR operator.
+func Or(conds ...WhereCond) *LogicalOpCond {
+	return &LogicalOpCond{
+		op:    logicalOpOr,
+		conds: conds,
+	}
+}
+
+func (c *LogicalOpCond) ToAstWhere() (*ast.Where, error) {
+	if len(c.conds) <= 0 {
+		return nil, errors.New("no conditions")
+	}
+	where, err := c.conds[0].ToAstWhere()
+	if err != nil {
+		return nil, err
+	}
+	acc := where
+	for _, cond := range c.conds[1:] {
+		where, err = cond.ToAstWhere()
+		if err != nil {
+			return nil, err
+		}
+		acc = &ast.Where{
+			Expr: &ast.BinaryExpr{
+				Op:    ast.BinaryOp(c.op),
+				Left:  acc.Expr,
+				Right: where.Expr,
+			},
+		}
+	}
+	return acc, nil
 }

@@ -31,3 +31,55 @@ func TestOp(t *testing.T) {
 	test(t, memeduck.Op(1, memeduck.LE, 2), `1 <= 2`)
 	test(t, memeduck.Op(2, memeduck.GE, 1), `2 >= 1`)
 }
+
+func TestAnd(t *testing.T) {
+	_, err := memeduck.And().ToAstWhere()
+	assert.Error(t, err, "empty AND")
+	test(t,
+		memeduck.And(
+			memeduck.Op(1, memeduck.EQ, 1),
+		),
+		`1 = 1`,
+	)
+	test(t,
+		memeduck.And(
+			memeduck.Op(1, memeduck.EQ, 1),
+			memeduck.Op("hoge", memeduck.EQ, "hoge"),
+		),
+		`1 = 1 AND "hoge" = "hoge"`,
+	)
+	test(t,
+		memeduck.And(
+			memeduck.Op(1, memeduck.EQ, 1),
+			memeduck.Op("hoge", memeduck.EQ, "hoge"),
+			memeduck.Op(true, memeduck.EQ, true),
+		),
+		`1 = 1 AND "hoge" = "hoge" AND TRUE = TRUE`,
+	)
+}
+
+func TestOr(t *testing.T) {
+	_, err := memeduck.Or().ToAstWhere()
+	assert.Error(t, err, "empty Or")
+	test(t,
+		memeduck.Or(
+			memeduck.Op(1, memeduck.EQ, 1),
+		),
+		`1 = 1`,
+	)
+	test(t,
+		memeduck.Or(
+			memeduck.Op(1, memeduck.EQ, 1),
+			memeduck.Op("hoge", memeduck.EQ, "hoge"),
+		),
+		`1 = 1 OR "hoge" = "hoge"`,
+	)
+	test(t,
+		memeduck.Or(
+			memeduck.Op(1, memeduck.EQ, 1),
+			memeduck.Op("hoge", memeduck.EQ, "hoge"),
+			memeduck.Op(true, memeduck.EQ, true),
+		),
+		`1 = 1 OR "hoge" = "hoge" OR TRUE = TRUE`,
+	)
+}

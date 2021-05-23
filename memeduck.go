@@ -45,10 +45,7 @@ func (s *DeleteStmt) SQL() (string, error) {
 }
 
 func (s *DeleteStmt) toAST() (*ast.Delete, error) {
-	if len(s.conds) == 0 {
-		return nil, errors.New("no WHERE clause specified")
-	}
-	cond, err := s.conds[0].ToASTWhere()
+	cond, err := And(s.conds...).ToASTWhere()
 	if err != nil {
 		return nil, err
 	}

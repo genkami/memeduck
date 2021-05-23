@@ -144,6 +144,47 @@ func (c *NullCond) ToASTWhere() (*ast.Where, error) {
 	}, nil
 }
 
+// BetweenCond represents BETWEEN or NOT BETWEEN predicates.
+type BetweenCond struct {
+	arg interface{}
+	min interface{}
+	max interface{}
+	not bool
+}
+
+// Between(x, min, max) creates `x BETWEEN min AND max` predicate.
+func Between(x, min, max interface{}) *BetweenCond {
+	return &BetweenCond{arg: x, min: min, max: max}
+}
+
+// NotBetween(x, min, max) creates `x NOT BETWEEN min AND max` predicate.
+func NotBetween(x, min, max interface{}) *BetweenCond {
+	return &BetweenCond{arg: x, min: min, max: max, not: true}
+}
+
+func (c *BetweenCond) ToASTWhere() (*ast.Where, error) {
+	arg, err := internal.ToExpr(c.arg)
+	if err != nil {
+		return nil, err
+	}
+	min, err := internal.ToExpr(c.min)
+	if err != nil {
+		return nil, err
+	}
+	max, err := internal.ToExpr(c.max)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Where{
+		Expr: &ast.BetweenExpr{
+			Not:        c.not,
+			Left:       arg,
+			RightStart: min,
+			RightEnd:   max,
+		},
+	}, nil
+}
+
 // IdentExpr is an identifier.
 type IdentExpr struct {
 	names []string

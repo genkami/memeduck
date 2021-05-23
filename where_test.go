@@ -73,6 +73,11 @@ func TestIsNullAndIsNotNull(t *testing.T) {
 	testWhere(t, memeduck.IsNotNull(memeduck.Ident("fuga")), `fuga IS NOT NULL`)
 }
 
+func TestBetweenAndNotBetween(t *testing.T) {
+	testWhere(t, memeduck.Between(memeduck.Ident("hoge"), 1, 10), `hoge BETWEEN 1 AND 10`)
+	testWhere(t, memeduck.NotBetween(memeduck.Ident("hoge"), 1, 10), `hoge NOT BETWEEN 1 AND 10`)
+}
+
 func TestAnd(t *testing.T) {
 	_, err := memeduck.And().ToASTWhere()
 	assert.Error(t, err, "empty AND")

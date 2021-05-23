@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -137,12 +138,25 @@ func TestASTWithNullDate(t *testing.T) {
 
 type customExpr struct{}
 
-func (*customExpr) ToASTExpr() ast.Expr {
-	return internal.StringLit("custom expr")
+func (*customExpr) ToASTExpr() (ast.Expr, error) {
+	return internal.StringLit("custom expr"), nil
 }
 
 func TestASTWithASTExpr(t *testing.T) {
 	testAST(t, &customExpr{}, internal.StringLit("custom expr"))
+}
+
+type customExprThatFails struct{}
+
+var errToASTExprFailed = errors.New("internal error")
+
+func (*customExprThatFails) ToASTExpr() (ast.Expr, error) {
+	return nil, errToASTExprFailed
+}
+
+func TestASTWhenASTExprFails(t *testing.T) {
+	_, err := internal.ToExpr(&customExprThatFails{})
+	assert.ErrorIs(t, err, errToASTExprFailed)
 }
 
 func TestASTWithSlice(t *testing.T) {

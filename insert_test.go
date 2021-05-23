@@ -629,8 +629,11 @@ type testInsertCustomExpr struct {
 	a, b string
 }
 
-func (e *testInsertCustomExpr) ToASTExpr() ast.Expr {
-	return internal.ArrayLit([]ast.Expr{internal.StringLit(e.a), internal.StringLit(e.b)})
+func (e *testInsertCustomExpr) ToASTExpr() (ast.Expr, error) {
+	return internal.ArrayLit([]ast.Expr{
+		internal.StringLit(e.a),
+		internal.StringLit(e.b),
+	}), nil
 }
 
 func TestInsertWithCustomExpr(t *testing.T) {

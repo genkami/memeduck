@@ -13,7 +13,7 @@ import (
 
 // ASTExpr is a type that can be converted into ast.Expr.
 type ASTExpr interface {
-	ToASTExpr() ast.Expr
+	ToASTExpr() (ast.Expr, error)
 }
 
 func ToExpr(val interface{}) (ast.Expr, error) {
@@ -106,7 +106,7 @@ func ToExpr(val interface{}) (ast.Expr, error) {
 		return DateLit(v.Date), nil
 	default:
 		if se, ok := val.(ASTExpr); ok {
-			return se.ToASTExpr(), nil
+			return se.ToASTExpr()
 		}
 		// TODO: support big.Rat
 		// Slices

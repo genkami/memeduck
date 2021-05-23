@@ -19,11 +19,12 @@ func testWhere(t *testing.T, cond whereCond, expected string) {
 }
 
 type astExpr interface {
-	ToASTExpr() ast.Expr
+	ToASTExpr() (ast.Expr, error)
 }
 
 func testExpr(t *testing.T, expr astExpr, expected string) {
-	e := expr.ToASTExpr()
+	e, err := expr.ToASTExpr()
+	assert.Nil(t, err, expected)
 	assert.Equal(t, expected, e.SQL())
 }
 

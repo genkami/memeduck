@@ -113,8 +113,8 @@ func Ident(name string) *IdentExpr {
 	return &IdentExpr{name: name}
 }
 
-func (ie *IdentExpr) ToASTExpr() ast.Expr {
-	return &ast.Ident{Name: ie.name}
+func (ie *IdentExpr) ToASTExpr() (ast.Expr, error) {
+	return &ast.Ident{Name: ie.name}, nil
 }
 
 // LogicalOpCond represents AND/OR operator.

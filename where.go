@@ -127,6 +127,20 @@ func (e *IdentExpr) ToASTExpr() (ast.Expr, error) {
 	return path, nil
 }
 
+// ParamExpr is a query parameter.
+type ParamExpr struct {
+	name string
+}
+
+// Param createsa new ParamExpr.
+func Param(name string) *ParamExpr {
+	return &ParamExpr{name: name}
+}
+
+func (e *ParamExpr) ToASTExpr() (ast.Expr, error) {
+	return &ast.Param{Name: e.name}, nil
+}
+
 // LogicalOpCond represents AND/OR operator.
 type LogicalOpCond struct {
 	op    logicalOp

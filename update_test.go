@@ -43,6 +43,14 @@ func TestUpdate(t *testing.T) {
 	)
 	testUpdate(t,
 		memeduck.Update("hoge").
+			Set(memeduck.Ident("a"), memeduck.Param("a")).
+			Where(
+				memeduck.Eq(memeduck.Ident("b"), "foo"),
+			),
+		`UPDATE hoge SET a = @a WHERE b = "foo"`,
+	)
+	testUpdate(t,
+		memeduck.Update("hoge").
 			Set(memeduck.Ident("a"), memeduck.Ident("b")).
 			Set(memeduck.Ident("b"), memeduck.Ident("a")).
 			Where(

@@ -625,6 +625,15 @@ func TestInsertWithNullDateSliceSlice(t *testing.T) {
 	)
 }
 
+func TestInsertWithParamSlice(t *testing.T) {
+	testInsert(t,
+		memeduck.Insert("hoge", []string{"a", "b"}).Values([][]*memeduck.ParamExpr{
+			{memeduck.Param("a"), memeduck.Param("b")},
+		}),
+		`INSERT INTO hoge (a, b) VALUES (@a, @b)`,
+	)
+}
+
 type testInsertCustomExpr struct {
 	a, b string
 }

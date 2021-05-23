@@ -43,6 +43,11 @@ func TestIdent(t *testing.T) {
 	testExpr(t, memeduck.Ident("TRUE", "FALSE"), "`TRUE`.`FALSE`")
 }
 
+func TestParam(t *testing.T) {
+	testExpr(t, memeduck.Param("a"), `@a`)
+	testExpr(t, memeduck.Param("abc"), `@abc`)
+}
+
 func TestOp(t *testing.T) {
 	testWhere(t, memeduck.Op(1, memeduck.EQ, 1), `1 = 1`)
 	testWhere(t, memeduck.Op("hoge", memeduck.NE, "fuga"), `"hoge" != "fuga"`)

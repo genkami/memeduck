@@ -39,6 +39,12 @@ func TestSelect(t *testing.T) {
 	)
 	testSelect(t,
 		memeduck.Select("hoge", []string{"a", "b"}).Where(
+			memeduck.Ne(memeduck.Ident("a"), memeduck.Param("a")),
+		),
+		`SELECT a, b FROM hoge WHERE a != @a`,
+	)
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).Where(
 			memeduck.Eq(memeduck.Ident("a"), 1),
 			memeduck.Eq(memeduck.Ident("b"), "2"),
 		),

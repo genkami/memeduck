@@ -115,6 +115,35 @@ func NotLike(lhs, rhs interface{}) *OpCond {
 	return Op(lhs, NOT_LIKE, rhs)
 }
 
+// NullCond represents IS NULL or IS NOT NULL predicate.
+type NullCond struct {
+	not bool
+	arg interface{}
+}
+
+// IsNull creates `x IS NULL` predicate.
+func IsNull(arg interface{}) *NullCond {
+	return &NullCond{arg: arg}
+}
+
+// IsNotNull creates `x IS NOT NULL` predicate.
+func IsNotNull(arg interface{}) *NullCond {
+	return &NullCond{arg: arg, not: true}
+}
+
+func (c *NullCond) ToASTWhere() (*ast.Where, error) {
+	expr, err := internal.ToExpr(c.arg)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Where{
+		Expr: &ast.IsNullExpr{
+			Not:  c.not,
+			Left: expr,
+		},
+	}, nil
+}
+
 // IdentExpr is an identifier.
 type IdentExpr struct {
 	names []string

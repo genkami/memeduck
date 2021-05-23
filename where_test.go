@@ -68,6 +68,11 @@ func TestOp(t *testing.T) {
 	testWhere(t, memeduck.NotLike("hoge", "ho%"), `"hoge" NOT LIKE "ho%"`)
 }
 
+func TestIsNullAndIsNotNull(t *testing.T) {
+	testWhere(t, memeduck.IsNull(memeduck.Ident("hoge")), `hoge IS NULL`)
+	testWhere(t, memeduck.IsNotNull(memeduck.Ident("fuga")), `fuga IS NOT NULL`)
+}
+
 func TestAnd(t *testing.T) {
 	_, err := memeduck.And().ToASTWhere()
 	assert.Error(t, err, "empty AND")

@@ -30,6 +30,13 @@ func TestOp(t *testing.T) {
 	test(t, memeduck.Op(4.56, memeduck.GT, 1.23), `4.56e+00 > 1.23e+00`)
 	test(t, memeduck.Op(1, memeduck.LE, 2), `1 <= 2`)
 	test(t, memeduck.Op(2, memeduck.GE, 1), `2 >= 1`)
+
+	test(t, memeduck.Eq(1, 1), `1 = 1`)
+	test(t, memeduck.Ne("hoge", "fuga"), `"hoge" != "fuga"`)
+	test(t, memeduck.Lt(1.23, 4.56), `1.23e+00 < 4.56e+00`)
+	test(t, memeduck.Gt(4.56, 1.23), `4.56e+00 > 1.23e+00`)
+	test(t, memeduck.Le(1, 2), `1 <= 2`)
+	test(t, memeduck.Ge(2, 1), `2 >= 1`)
 }
 
 func TestAnd(t *testing.T) {

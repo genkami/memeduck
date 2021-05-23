@@ -68,6 +68,36 @@ func Op(lhs interface{}, op BinaryOp, rhs interface{}) *OpCond {
 	}
 }
 
+// Eq(x, y) is a shorthand for Op(x, EQ, y)
+func Eq(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, EQ, rhs)
+}
+
+// Ne(x, y) is a shorthand for Op(x, NE, y)
+func Ne(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, NE, rhs)
+}
+
+// Lt(x, y) is a shorthand for Op(x, LT, y)
+func Lt(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, LT, rhs)
+}
+
+// Gt(x, y) is a shorthand for Op(x, GT, y)
+func Gt(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, GT, rhs)
+}
+
+// Le(x, y) is a shorthand for Op(x, LE, y)
+func Le(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, LE, rhs)
+}
+
+// Ge(x, y) is a shorthand for Op(x, GE, y)
+func Ge(lhs, rhs interface{}) *OpCond {
+	return Op(lhs, GE, rhs)
+}
+
 // IdentExpr is an identifier.
 type IdentExpr struct {
 	name string

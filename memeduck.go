@@ -16,6 +16,7 @@ type SelectStmt struct {
 	cols  []string
 	conds []WhereCond
 	ords  []*ordering
+	limit *int
 }
 
 type ordering struct {
@@ -63,6 +64,14 @@ func (s *SelectStmt) OrderBy(col string, dir Direction) *SelectStmt {
 	return &t
 }
 
+// Limit adds a LIMIT clause to the SELECT statement.
+// It replaces existing LIMIT clauses.
+func (s *SelectStmt) Limit(limit int) *SelectStmt {
+	var t = *s
+	t.limit = &limit
+	return &t
+}
+
 func (s *SelectStmt) SQL() (string, error) {
 	stmt, err := s.toAST()
 	if err != nil {
@@ -102,6 +111,13 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 		}
 	}
 
+	var limit *ast.Limit = nil
+	if s.limit != nil {
+		limit = &ast.Limit{
+			Count: internal.IntLit(int64(*s.limit)),
+		}
+	}
+
 	return &ast.Select{
 		From: &ast.From{
 			Source: &ast.TableName{
@@ -111,6 +127,7 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 		Results: items,
 		Where:   where,
 		OrderBy: orderBy,
+		Limit:   limit,
 	}, nil
 }
 

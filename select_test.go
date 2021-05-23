@@ -70,6 +70,27 @@ func TestSelectWithOrderBy(t *testing.T) {
 	)
 }
 
+func TestSelectWithLimit(t *testing.T) {
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).
+			Limit(10),
+		`SELECT a, b FROM hoge LIMIT 10`,
+	)
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).
+			OrderBy("a", memeduck.ASC).
+			Limit(10),
+		`SELECT a, b FROM hoge ORDER BY a ASC LIMIT 10`,
+	)
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).Where(
+			memeduck.Eq(memeduck.Ident("a"), 123),
+		).OrderBy("a", memeduck.ASC).
+			Limit(10),
+		`SELECT a, b FROM hoge WHERE a = 123 ORDER BY a ASC LIMIT 10`,
+	)
+}
+
 func TestSelectWithoutColumn(t *testing.T) {
 	_, err := memeduck.Select("hoge", []string{}).SQL()
 	assert.Error(t, err)

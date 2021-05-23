@@ -12,11 +12,12 @@ import (
 
 // SelectStmt builds SELECT statements.
 type SelectStmt struct {
-	table string
-	cols  []string
-	conds []WhereCond
-	ords  []*ordering
-	limit *int
+	table  string
+	cols   []string
+	conds  []WhereCond
+	ords   []*ordering
+	limit  *int
+	offset *int
 }
 
 type ordering struct {
@@ -72,6 +73,15 @@ func (s *SelectStmt) Limit(limit int) *SelectStmt {
 	return &t
 }
 
+// LimitOffset adds a LIMIT ... OFFSET ... clause to the SELECT statement.
+// It replaces existing LIMIT clauses.
+func (s *SelectStmt) LimitOffset(limit, offset int) *SelectStmt {
+	var t = *s
+	t.limit = &limit
+	t.offset = &offset
+	return &t
+}
+
 func (s *SelectStmt) SQL() (string, error) {
 	stmt, err := s.toAST()
 	if err != nil {
@@ -115,6 +125,11 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 	if s.limit != nil {
 		limit = &ast.Limit{
 			Count: internal.IntLit(int64(*s.limit)),
+		}
+		if s.offset != nil {
+			limit.Offset = &ast.Offset{
+				Value: internal.IntLit(int64(*s.offset)),
+			}
 		}
 	}
 

@@ -66,6 +66,8 @@ github.com/MakeNowJust/heredoc/v2 v2.0.1 h1:rlCHh70XXXv7toz95ajQWOWQnN4WNLt0TdpZ
 github.com/MakeNowJust/heredoc/v2 v2.0.1/go.mod h1:6/2Abh5s+hc3g9nbWLe9ObDIOhaRrqsyY9MWy+4JdRM=
 github.com/MakeNowJust/memefish v0.0.0-20210206051205-cb2c7442c144 h1:ZdEGsEB0I5YbND0EhpHmVb7BMNVEOXFikqW1UtQU/20=
 github.com/MakeNowJust/memefish v0.0.0-20210206051205-cb2c7442c144/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
+github.com/MakeNowJust/memefish v0.0.0-20210719154343-8e57b2ffca78 h1:8dtLaTs8H0YijfWRLRPrNnW4gmk+Lc0Ev5w3I+/ZEZ4=
+github.com/MakeNowJust/memefish v0.0.0-20210719154343-8e57b2ffca78/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/census-instrumentation/opencensus-proto v0.2.1 h1:glEXhBS5PSLLv4IXzLA5yPRVX4bilULVyxxbrfOtDAk=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

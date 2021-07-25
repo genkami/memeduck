@@ -58,3 +58,45 @@ func ExampleSelect_queryParameter() {
 	fmt.Println(query)
 	// Output: SELECT name, created_at FROM user WHERE age > @age
 }
+
+func ExampleSelect_queryScalarSubquery() {
+	subQueryStmt := memeduck.Select("user_status", []string{"state"}).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), memeduck.Param("id")))
+	query, _ := memeduck.Select("user", []string{"name", "created_at"}).
+		SubQuery(memeduck.ScalarSubQuery(subQueryStmt).As("state")).
+		Where(memeduck.Eq(memeduck.Ident("id"), memeduck.Param("id"))).
+		SQL()
+	fmt.Println(query)
+	// Output: SELECT name, created_at, (SELECT state FROM user_status WHERE user_id = @id) AS state FROM user WHERE id = @id
+}
+
+func ExampleSelect_queryArraySubquery() {
+	subQueryStmt := memeduck.Select("user_item", []string{"item_id", "count"}).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), memeduck.Param("id"))).
+		AsStruct()
+	query, _ := memeduck.Select("user", []string{"name", "created_at"}).
+		SubQuery(memeduck.ArraySubQuery(subQueryStmt).As("user_item")).
+		Where(memeduck.Eq(memeduck.Ident("id"), memeduck.Param("id"))).
+		SQL()
+	fmt.Println(query)
+	// Output: SELECT name, created_at, ARRAY(SELECT AS STRUCT item_id, count FROM user_item WHERE user_id = @id) AS user_item FROM user WHERE id = @id
+}
+
+func ExampleSelect_queryMultiSubQuery() {
+	itemStmt := memeduck.Select("user_item", []string{"item_id", "count"}).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), "user-id")).
+		AsStruct()
+	// user has one status
+	statusStmt := memeduck.Select("user_status", []string{"state"}).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), "user-id")).
+		AsStruct()
+	query, _ := memeduck.Select("user", []string{"name"}).
+		SubQuery(
+			memeduck.ArraySubQuery(itemStmt).As("user_item"),
+			memeduck.ArraySubQuery(statusStmt).As("user_status"),
+		).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), "user-id")).
+		SQL()
+	fmt.Println(query)
+	// Output: SELECT name, ARRAY(SELECT AS STRUCT item_id, count FROM user_item WHERE user_id = "user-id") AS user_item, ARRAY(SELECT AS STRUCT state FROM user_status WHERE user_id = "user-id") AS user_status FROM user WHERE user_id = "user-id"
+}

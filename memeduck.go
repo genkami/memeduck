@@ -12,12 +12,15 @@ import (
 
 // SelectStmt builds SELECT statements.
 type SelectStmt struct {
-	table  string
-	cols   []string
-	conds  []WhereCond
-	ords   []*ordering
-	limit  *int
-	offset *int
+	table      string
+	cols       []string
+	conds      []WhereCond
+	ords       []*ordering
+	limit      *int
+	offset     *int
+	asTable    string
+	asStruct   bool
+	subQueries []SubQuery
 }
 
 type ordering struct {
@@ -46,6 +49,18 @@ func Select(table string, cols []string) *SelectStmt {
 		table: table,
 		cols:  cols,
 	}
+}
+
+func (s *SelectStmt) AsStruct() *SelectStmt {
+	var t = *s
+	t.asStruct = true
+	return &t
+}
+
+func (s *SelectStmt) SubQuery(queries ...SubQuery) *SelectStmt {
+	var t = *s
+	t.subQueries = append(t.subQueries, queries...)
+	return &t
 }
 
 // Where appends given codintional expressions to the SELECT statement.
@@ -100,14 +115,23 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 		}
 	}
 
-	items := make([]ast.SelectItem, 0, len(s.cols))
 	if len(s.cols) <= 0 {
 		return nil, errors.New("no columns specified")
 	}
+	items := make([]ast.SelectItem, 0, len(s.cols))
 	for _, col := range s.cols {
 		items = append(items, &ast.ExprSelectItem{
 			Expr: &ast.Ident{Name: col},
 		})
+	}
+	if len(s.subQueries) > 0 {
+		for _, q := range s.subQueries {
+			item, err := q.ToAST()
+			if err != nil {
+				return nil, errors.New("")
+			}
+			items = append(items, item)
+		}
 	}
 
 	var orderBy *ast.OrderBy = nil
@@ -139,10 +163,11 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 				Table: &ast.Ident{Name: s.table},
 			},
 		},
-		Results: items,
-		Where:   where,
-		OrderBy: orderBy,
-		Limit:   limit,
+		AsStruct: s.asStruct,
+		Results:  items,
+		Where:    where,
+		OrderBy:  orderBy,
+		Limit:    limit,
 	}, nil
 }
 

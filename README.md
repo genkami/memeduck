@@ -17,6 +17,30 @@ The memeduck is a SQL query builder for Cloud Spanner. (named after [MakeNowJust
 	// Output: SELECT name, created_at FROM user WHERE good_at = "cooking" LIMIT 10 OFFSET 3
 ```
 
+```go
+    // user has many items
+	itemStmt := memeduck.Select("user_item", []string{"item_id", "count"}).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), "user-id")).
+		AsStruct()
+	// user has one status
+	statusStmt := memeduck.Select("user_status", []string{"state"}).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), "user-id")).
+		AsStruct()
+	query.Stmt, _ := memeduck.Select("user", []string{"name"}).
+		SubQuery(
+			memeduck.ArraySubQuery(itemStmt).As("user_item"),
+			memeduck.ScalarSubQuery(statusStmt).As("user_status"),
+		).
+		Where(memeduck.Eq(memeduck.Ident("user_id"), "user-id")).
+		SQL()
+	// Output:
+	// SELECT
+	// name,
+	//	ARRAY(SELECT AS STRUCT item_id, count FROM user_item WHERE user_id = "user-id") AS user_item,
+	//	ARRAY(SELECT AS STRUCT state FROM user_status WHERE user_id = "user-id") AS user_status
+	// FROM user WHERE user_id = "user-id"
+```
+
 ### Insert
 ```go
 type ExampleUserStruct struct {

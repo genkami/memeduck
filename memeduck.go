@@ -18,7 +18,6 @@ type SelectStmt struct {
 	ords       []*ordering
 	limit      *int
 	offset     *int
-	asTable    string
 	asStruct   bool
 	subQueries []SubQuery
 }

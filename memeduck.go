@@ -127,7 +127,7 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 		for _, q := range s.subQueries {
 			item, err := q.ToAST()
 			if err != nil {
-				return nil, errors.New("")
+				return nil, err
 			}
 			items = append(items, item)
 		}

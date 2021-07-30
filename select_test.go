@@ -67,6 +67,15 @@ func TestSelect(t *testing.T) {
 	)
 }
 
+func TestSelectWithAsStruct(t *testing.T) {
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).Where(
+			memeduck.Eq(memeduck.Ident("c"), memeduck.Param("id")),
+		).AsStruct(),
+		`SELECT AS STRUCT a, b FROM hoge WHERE c = @id`,
+	)
+}
+
 func TestSelectWithOrderBy(t *testing.T) {
 	testSelect(t,
 		memeduck.Select("hoge", []string{"a", "b"}).Where(
@@ -128,4 +137,28 @@ func TestSelectWithLimitOffset(t *testing.T) {
 func TestSelectWithoutColumn(t *testing.T) {
 	_, err := memeduck.Select("hoge", []string{}).SQL()
 	assert.Error(t, err)
+}
+
+func TestSelectWithSubQuery(t *testing.T) {
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).
+			SubQuery(
+				memeduck.ScalarSubQuery(memeduck.Select("fuga", []string{"c"}).Where(memeduck.Eq(3, 4))).As("fuga"),
+			).
+			Where(
+				memeduck.Eq(1, 2),
+			),
+		`SELECT a, b, (SELECT c FROM fuga WHERE 3 = 4) AS fuga FROM hoge WHERE 1 = 2`,
+	)
+
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).
+			SubQuery(
+				memeduck.ArraySubQuery(memeduck.Select("fuga", []string{"c", "d"}).Where(memeduck.Eq(3, 4)).AsStruct()).As("fuga"),
+			).
+			Where(
+				memeduck.Eq(1, 2),
+			),
+		`SELECT a, b, ARRAY(SELECT AS STRUCT c, d FROM fuga WHERE 3 = 4) AS fuga FROM hoge WHERE 1 = 2`,
+	)
 }

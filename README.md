@@ -6,6 +6,8 @@
 
 The memeduck is a SQL query builder for Cloud Spanner. (named after [MakeNowJust/memefish](https://github.com/MakeNowJust/memefish))
 
+**This project is currently in an experimental state and any API will be changed in an backward-incompatible way.**
+
 ## Examples
 ### Select
 ```go

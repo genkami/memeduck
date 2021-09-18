@@ -144,6 +144,41 @@ func (c *NullCond) ToASTWhere() (*ast.Where, error) {
 	}, nil
 }
 
+// InCond represents IN or NOT IN predicates.
+type InCond struct {
+	lhs, rhs interface{}
+	not      bool
+}
+
+// In(x, y) creates `x IN y` predicate.
+func In(x, y interface{}) *InCond {
+	return &InCond{lhs: x, rhs: y, not: false}
+}
+
+func NotIn(x, y interface{}) *InCond {
+	return &InCond{lhs: x, rhs: y, not: true}
+}
+
+func (c *InCond) ToASTWhere() (*ast.Where, error) {
+	lhs, err := internal.ToExpr(c.lhs)
+	if err != nil {
+		return nil, err
+	}
+	rhs, err := internal.ToExpr(c.rhs)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Where{
+		Expr: &ast.InExpr{
+			Not:  c.not,
+			Left: lhs,
+			Right: &ast.UnnestInCondition{
+				Expr: rhs,
+			},
+		},
+	}, nil
+}
+
 // BetweenCond represents BETWEEN or NOT BETWEEN predicates.
 type BetweenCond struct {
 	arg interface{}

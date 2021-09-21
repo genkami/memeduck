@@ -65,6 +65,10 @@ func TestSelect(t *testing.T) {
 		),
 		`SELECT a, b FROM hoge WHERE a.b = 1 AND a.c = "2"`,
 	)
+	testSelect(t,
+		memeduck.Select("hoge", []string{"a", "b"}).ForceIndex("fuga"),
+		`SELECT a, b FROM hoge @{FORCE_INDEX=fuga}`,
+	)
 }
 
 func TestSelectWithAsStruct(t *testing.T) {

@@ -15,6 +15,14 @@ func ExampleSelect() {
 	// Output: SELECT name, created_at FROM user WHERE race = "Phoenix" AND work_at = "KFP"
 }
 
+func ExampleSelect_forceIndex() {
+	query, _ := memeduck.Select("user", []string{"name", "age"}).Where(
+		memeduck.Lt(memeduck.Ident("age"), 18),
+	).ForceIndex("idx_age").SQL()
+	fmt.Println(query)
+	// Output: SELECT name, age FROM user @{FORCE_INDEX=idx_age} WHERE age < 18
+}
+
 func ExampleSelect_orderBy() {
 	query, _ := memeduck.Select("user", []string{"name", "created_at"}).
 		Where(memeduck.IsNotNull(memeduck.Ident("age"))).

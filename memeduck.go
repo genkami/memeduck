@@ -13,6 +13,7 @@ import (
 // SelectStmt builds SELECT statements.
 type SelectStmt struct {
 	table      string
+	forceIndex string
 	cols       []string
 	conds      []WhereCond
 	ords       []*ordering
@@ -66,6 +67,13 @@ func (s *SelectStmt) SubQuery(queries ...SubQuery) *SelectStmt {
 func (s *SelectStmt) Where(conds ...WhereCond) *SelectStmt {
 	var t = *s
 	t.conds = append(t.conds, conds...)
+	return &t
+}
+
+// ForceIndex add a OFRCE_INDEX clause.
+func (s *SelectStmt) ForceIndex(idx string) *SelectStmt {
+	var t = *s
+	t.forceIndex = idx
 	return &t
 }
 
@@ -155,12 +163,28 @@ func (s *SelectStmt) toAST() (*ast.Select, error) {
 			}
 		}
 	}
+	fromSource := &ast.TableName{
+		Table: &ast.Ident{Name: s.table},
+	}
+	if len(s.forceIndex) > 0 {
+		hint := &ast.Hint{
+			Records: []*ast.HintRecord{
+				{
+					Key: &ast.Ident{
+						Name: "FORCE_INDEX",
+					},
+					Value: &ast.Ident{
+						Name: s.forceIndex,
+					},
+				},
+			},
+		}
+		fromSource.Hint = hint
+	}
 
 	return &ast.Select{
 		From: &ast.From{
-			Source: &ast.TableName{
-				Table: &ast.Ident{Name: s.table},
-			},
+			Source: fromSource,
 		},
 		AsStruct: s.asStruct,
 		Results:  items,

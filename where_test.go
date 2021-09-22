@@ -74,13 +74,13 @@ func TestIsNullAndIsNotNull(t *testing.T) {
 }
 
 func TestIn(t *testing.T) {
-	testWhere(t, memeduck.In(memeduck.Ident("hoge"), memeduck.Param("hoge")), `hoge IN UNNEST(@hoge)`)
-	testWhere(t, memeduck.In(memeduck.Ident("hoge"), []string{"foo", "bar"}), `hoge IN UNNEST(ARRAY["foo", "bar"])`)
+	testWhere(t, memeduck.In(memeduck.Ident("hoge"), memeduck.Unnest(memeduck.Param("hoge"))), `hoge IN UNNEST(@hoge)`)
+	testWhere(t, memeduck.In(memeduck.Ident("hoge"), memeduck.Unnest([]string{"foo", "bar"})), `hoge IN UNNEST(ARRAY["foo", "bar"])`)
 }
 
 func TestNotIn(t *testing.T) {
-	testWhere(t, memeduck.NotIn(memeduck.Ident("hoge"), memeduck.Param("hoge")), `hoge NOT IN UNNEST(@hoge)`)
-	testWhere(t, memeduck.NotIn(memeduck.Ident("hoge"), []string{"foo", "bar"}), `hoge NOT IN UNNEST(ARRAY["foo", "bar"])`)
+	testWhere(t, memeduck.NotIn(memeduck.Ident("hoge"), memeduck.Unnest(memeduck.Param("hoge"))), `hoge NOT IN UNNEST(@hoge)`)
+	testWhere(t, memeduck.NotIn(memeduck.Ident("hoge"), memeduck.Unnest([]string{"foo", "bar"})), `hoge NOT IN UNNEST(ARRAY["foo", "bar"])`)
 }
 
 func TestBetweenAndNotBetween(t *testing.T) {

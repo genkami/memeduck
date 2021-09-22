@@ -144,18 +144,47 @@ func (c *NullCond) ToASTWhere() (*ast.Where, error) {
 	}, nil
 }
 
+// InConditionValue is a value expression in IN clauses.
+type InConditionValue interface {
+	ToASTInConditionValue() (ast.InCondition, error)
+}
+
+// UnnestInConditionValue is a UNNEST operator in IN clauses.
+type UnnestInConditionValue struct {
+	value interface{}
+}
+
+func (v *UnnestInConditionValue) ToASTInConditionValue() (ast.InCondition, error) {
+	value, err := internal.ToExpr(v.value)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.UnnestInCondition{
+		Expr: value,
+	}, nil
+}
+
+// Unnest(v) creates `UNNEST(v)` predicate.
+func Unnest(v interface{}) *UnnestInConditionValue {
+	return &UnnestInConditionValue{
+		value: v,
+	}
+}
+
 // InCond represents IN or NOT IN predicates.
 type InCond struct {
-	lhs, rhs interface{}
-	not      bool
+	lhs interface{}
+	rhs InConditionValue
+	not bool
 }
 
 // In(x, y) creates `x IN y` predicate.
-func In(x, y interface{}) *InCond {
+func In(x interface{}, y InConditionValue) *InCond {
 	return &InCond{lhs: x, rhs: y, not: false}
 }
 
-func NotIn(x, y interface{}) *InCond {
+// In(x, y) creates `x NOT IN y` predicate.
+func NotIn(x interface{}, y InConditionValue) *InCond {
 	return &InCond{lhs: x, rhs: y, not: true}
 }
 
@@ -164,17 +193,15 @@ func (c *InCond) ToASTWhere() (*ast.Where, error) {
 	if err != nil {
 		return nil, err
 	}
-	rhs, err := internal.ToExpr(c.rhs)
+	rhs, err := c.rhs.ToASTInConditionValue()
 	if err != nil {
 		return nil, err
 	}
 	return &ast.Where{
 		Expr: &ast.InExpr{
-			Not:  c.not,
-			Left: lhs,
-			Right: &ast.UnnestInCondition{
-				Expr: rhs,
-			},
+			Not:   c.not,
+			Left:  lhs,
+			Right: rhs,
 		},
 	}, nil
 }

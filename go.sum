@@ -84,6 +84,8 @@ github.com/MakeNowJust/memefish v0.0.0-20210719154343-8e57b2ffca78 h1:8dtLaTs8H0
 github.com/MakeNowJust/memefish v0.0.0-20210719154343-8e57b2ffca78/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
 github.com/MakeNowJust/memefish v0.0.0-20210903010316-40f12f812968 h1:02O71hVq1HEZxiKYLGcKrSEw/uOG986GnFcOrgUM6SY=
 github.com/MakeNowJust/memefish v0.0.0-20210903010316-40f12f812968/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
+github.com/MakeNowJust/memefish v0.0.0-20211014154734-dbfb8b28907d h1:Leifir0NBuv7kITPOJlaXYVyKyhIGdnftANsm/OBlx4=
+github.com/MakeNowJust/memefish v0.0.0-20211014154734-dbfb8b28907d/go.mod h1:1ft7DGastdJzagZDRTdbkXNqh48UTbjEOHofr2pUz90=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/census-instrumentation/opencensus-proto v0.2.1 h1:glEXhBS5PSLLv4IXzLA5yPRVX4bilULVyxxbrfOtDAk=
